@@ -13,14 +13,14 @@ public class EncabezadoGeneral extends JPanel{
 
         // --------------------------------------------- fondo/borde -------------------------------------------------------------
         this.setOpaque(true);
-        this.setBackground(new ColorUIResource(0,0,0));
+        this.setBackground(new ColorUIResource(255,255,255));
         
         // --------------------------------------------- creacion elementos -------------------------------------------------
         // LOGO
         JPanel ubicacionLogo = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
         ubicacionLogo.setOpaque(false);
         Logo = new JLabel("Ubercv");
-        ubicacionLogo.add(Logo);
+        ubicacionLogo.add(Logo, "West");
         
         // linea separadora del cuerpo 
         JPanel panelSeparador = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
@@ -29,7 +29,7 @@ public class EncabezadoGeneral extends JPanel{
         
         JSeparator separador = new JSeparator();
         separador.setPreferredSize(new Dimension(getWidth()-1, 2));
-        separador.setForeground(new ColorUIResource(255,255,255));
+        separador.setForeground(new ColorUIResource(0,0,0));
         panelSeparador.add(separador);
 
         //aniadir elementos
