@@ -1,40 +1,45 @@
 package vista.PlantillaVista;
 
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
+import javax.swing.plaf.FontUIResource;
 
 public class EncabezadoGeneral extends JPanel{
 
     private JLabel Logo;
+    private JPanel ubicacionLogo;
 
     public EncabezadoGeneral(){
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo ancho disponible de la pagina
+        this.setOpaque(true);
+        this.setBackground(new ColorUIResource(255, 255, 255));
 
         // --------------------------------------------- fondo/borde -------------------------------------------------------------
         this.setOpaque(true);
-        this.setBackground(new ColorUIResource(0,0,0));
+        this.setBackground(new ColorUIResource(255,255,255));
         
         // --------------------------------------------- creacion elementos -------------------------------------------------
         // LOGO
-        JPanel ubicacionLogo = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
-        ubicacionLogo.setOpaque(false);
-        Logo = new JLabel("Ubercv");
+        ubicacionLogo = CrearSubPanel.subPanel();
+        Logo = new JLabel("<html><u>Ubercv</u></html>");
+        Logo.setForeground(new ColorUIResource(0,0,0));
+        Logo.setFont(new FontUIResource("Inter",1,56));
         ubicacionLogo.add(Logo);
+        ubicacionLogo.setLayout(new FlowLayout(FlowLayout.LEFT));
+        ubicacionLogo.setBorder(BorderFactory.createEmptyBorder(10,10,3,10));
         
         // linea separadora del cuerpo 
-        JPanel panelSeparador = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
-        panelSeparador.setOpaque(false);
-        panelSeparador.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0)); 
-        
         JSeparator separador = new JSeparator();
-        separador.setPreferredSize(new Dimension(getWidth()-1, 2));
-        separador.setForeground(new ColorUIResource(255,255,255));
-        panelSeparador.add(separador);
-
+        separador.setForeground(new ColorUIResource(0,0,0));
+        
         //aniadir elementos
         this.add(ubicacionLogo);
-        this.add(panelSeparador);
+        this.add(separador);
     }
-
+    
+    // ----------------------------------------------- acceso de datos del controlador ---------------------------------------------------
+    public JLabel getTextoPiePagina() {
+        return Logo;
+    }
 }
