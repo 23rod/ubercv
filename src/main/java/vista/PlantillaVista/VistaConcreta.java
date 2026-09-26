@@ -6,6 +6,7 @@ import javax.swing.plaf.ColorUIResource;
 import vista.PlantillaVista.CuerposDelSistema.*;
 
 public class VistaConcreta extends JFrame { //clase base que se usara para graficar todas las pagina del sistema
+    
     private EncabezadoGeneral encabezadoGeneral;
     private JPanel cuerpo;
     private PiePagina piePagina;
@@ -18,12 +19,9 @@ public class VistaConcreta extends JFrame { //clase base que se usara para grafi
         encabezadoGeneral = new EncabezadoGeneral();
         add(encabezadoGeneral, "North");
 
-        // --------------- Condicional al rol de la apertura se decidira luego de hacer el controlador correspondiente -------------
-        cuerpo = new CuerpoRegistro();
-        add(cuerpo, "Center");
-        cuerpo = new CuerpoRegistroUnidad();
-        add(cuerpo, "Center");
-        cuerpo = new CuerpoRegistroRuta();
+        // Condicional al rol de la apertura se decidira luego de hacer el controlador correspondiente
+        // Para seleccionar un cuerpo de lapagina camviar constructor
+        cuerpo = new CuerpoFuncionesUsuario();
         add(cuerpo, "Center");
 
 

@@ -17,7 +17,7 @@ public class CuerpoRegistro extends JPanel {
         this.setOpaque(true);
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
-        
+
         // Creacion del placehodler correo
         JLabel correoLabel = new JLabel("Correo Electrónico:"); //disposición en el panel contenedor
         campoCorreo = new JTextField(20);
@@ -70,6 +70,9 @@ public class CuerpoRegistro extends JPanel {
     }
     public JPasswordField getCampoConfirmarContrasenia(){
         return campoConfirmarContrasenia;
+    }
+    public String getRolSeleccionado(){
+         return (String) plegableRoles.getSelectedItem(); 
     }
     public JButton getBotonConfirmar(){
         return botonConfirmar;

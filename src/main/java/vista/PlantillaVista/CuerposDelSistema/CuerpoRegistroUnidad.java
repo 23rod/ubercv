@@ -3,6 +3,8 @@ package vista.PlantillaVista.CuerposDelSistema;
 import vista.PlantillaVista.CrearSubPanel;
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
+import javax.swing.plaf.DimensionUIResource;
+import javax.swing.table.DefaultTableModel;
 
 public class CuerpoRegistroUnidad extends JPanel {
 
@@ -11,6 +13,7 @@ public class CuerpoRegistroUnidad extends JPanel {
     private JTextField campoCapacidad;
     private JComboBox<String> estadoUnidad;
     private JButton botonConfirmar;
+    private JTable tablaUnidades;
     
     public CuerpoRegistroUnidad(){
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto dispoble de la pagina
@@ -52,6 +55,24 @@ public class CuerpoRegistroUnidad extends JPanel {
         JPanel panelBoton = CrearSubPanel.subPanel();
         panelBoton.add(botonConfirmar);
 
+        // Cracion de la tabla de rutas
+        String[] nombreColumnas = {"Placa", "Modelo", "Capacidad", "Estado Operativo"};
+        DefaultTableModel filasTablaUnidades = new DefaultTableModel(nombreColumnas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
+            @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
+            public boolean isCellEditable(int row, int column) {
+            return false;
+            }
+        };
+        tablaUnidades = new JTable(filasTablaUnidades);
+        tablaUnidades.setRowHeight(30);
+        
+        JScrollPane tablaConScroll = new JScrollPane(tablaUnidades); //Metodo para garantizar la graficacion y visualizacion de una tabla de N filas
+        tablaConScroll.setPreferredSize(new DimensionUIResource(800, 150));
+        
+        JPanel panelTablaUnidades = CrearSubPanel.subPanel(); // Ingraso la tablas con scroll en un panel para modificar sus dumensiones y ubicacion.
+        panelTablaUnidades.add(tablaConScroll);
+
+
         // --------------------------------------- disposicion del panel central del Cuerpo(Registro) -------------------------------------------- 
         
         add(panelPlaca);
@@ -59,6 +80,7 @@ public class CuerpoRegistroUnidad extends JPanel {
         add(panelCapacidad);
         add(panelPlegableEstadoUnidad);
         add(panelBoton);
+        add(panelTablaUnidades);
     }
 
     // ----------------------------------------- Acceso para los controladores ---------------------------------------------------------
@@ -71,8 +93,11 @@ public class CuerpoRegistroUnidad extends JPanel {
     public JTextField getcampoCapacidad(){
         return campoCapacidad;
     }
+        public String getEstadoSeleccionado(){
+         return (String) estadoUnidad.getSelectedItem(); 
+    }
     public JButton getBotonConfirmar(){
         return botonConfirmar;
     }
 }
- 
+  
