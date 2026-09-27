@@ -70,7 +70,7 @@ public class VentanaInicioSesion extends JFrame {
         JLabel etiquetaTituloCentral = new JLabel("INICIO DE SESIÓN");
         etiquetaTituloCentral.setBounds(140, 70, 250, 50);
         etiquetaTituloCentral.setFont(new Font("Arial", Font.BOLD, 24));
-        etiquetaTituloCentral.setOpaque(true);
+        etiquetaTituloCentral.setOpaque(false);
 
         //Crear una etiqueta para el usuario
         JLabel etiquetaUsuario = new JLabel("Usuario:");
