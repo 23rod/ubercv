@@ -9,14 +9,21 @@ import vista.PlantillaVista.CrearSubPanel;
 
 public class CuerpoFuncionesConductor extends JPanel {
     
+    private JButton botonCerrarSesion;
     private JTable tablaUnidades;
     private DefaultTableModel filasTablaUnidades;
+    
 
     public CuerpoFuncionesConductor(){
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
         this.setOpaque(true);
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
+
+        // Creacion del boton cerrar sesion
+        botonCerrarSesion = new JButton("Cerrar Sesión");
+        JPanel panelBotonCerrarSesion = CrearSubPanel.subPanel();
+        panelBotonCerrarSesion.add(botonCerrarSesion);
 
         // Creacion de la tabla de rutas
         String[] nombreColumnas = {"Placa", "Modelo", "Capacidad", "Estado Operativo", "Confirmar Actividad"};
@@ -40,5 +47,8 @@ public class CuerpoFuncionesConductor extends JPanel {
     }
     public DefaultTableModel getModeloTablaUnidades(){
         return filasTablaUnidades;
+    }
+    public JButton getBotonCerrarSesion(){
+        return botonCerrarSesion;
     }
 }

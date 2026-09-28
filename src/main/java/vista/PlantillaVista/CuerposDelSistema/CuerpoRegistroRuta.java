@@ -16,6 +16,7 @@ public class CuerpoRegistroRuta extends JPanel {
     private JButton botonConfirmar;
     private JTable tablaRutas;
     private DefaultTableModel filasTablaRutas;
+    private JButton botonCerrarSesion;
 
     public CuerpoRegistroRuta(){
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
@@ -23,6 +24,11 @@ public class CuerpoRegistroRuta extends JPanel {
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
         
+        // Creacion del boton cerrar sesion
+        botonCerrarSesion = new JButton("Cerrar Sesión");
+        JPanel panelBotonCerrarSesion = CrearSubPanel.subPanel();
+        panelBotonCerrarSesion.add(botonCerrarSesion);
+
         // Creacion del placeholder Nombre Ruta
         JLabel nombreRutaLabel = new JLabel("Nombre Ruta:"); //disposición en el panel contenedor
         campoNombreRuta = new JTextField(20);
@@ -103,6 +109,9 @@ public class CuerpoRegistroRuta extends JPanel {
     }
     public DefaultTableModel getModeloTablaRutas(){
         return filasTablaRutas;
+    }
+    public JButton getBotonCerrarSesion(){
+        return botonCerrarSesion;
     }
 }
  

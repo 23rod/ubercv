@@ -8,6 +8,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class CuerpoRegistroUnidad extends JPanel {
 
+    private JButton botonCerrarSesion;
     private JTextField campoPlaca;
     private JTextField campoModelo;
     private JTextField campoCapacidad;
@@ -22,6 +23,11 @@ public class CuerpoRegistroUnidad extends JPanel {
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
         
+        // Creacion del boton cerrar sesion
+        botonCerrarSesion = new JButton("Cerrar Sesión");
+        JPanel panelBotonCerrarSesion = CrearSubPanel.subPanel();
+        panelBotonCerrarSesion.add(botonCerrarSesion);
+
         // Creacion del placeholder Placa
         JLabel placaLabel = new JLabel("Placa:"); //disposición en el panel contenedor
         campoPlaca = new JTextField(20);
@@ -101,6 +107,9 @@ public class CuerpoRegistroUnidad extends JPanel {
     }
     public DefaultTableModel getModeloTablaUnidades(){
         return filasTablaUnidades;
+    }
+    public JButton getBotonCerrarSesion(){
+        return botonCerrarSesion;
     }
 }
   

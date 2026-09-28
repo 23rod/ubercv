@@ -13,6 +13,7 @@ public class CuerpoFuncionesUsuario extends JPanel {
     private JTable tablaReservas;
     private DefaultTableModel filasTablaRutas;
     private DefaultTableModel filasTablaReservas;
+    private JButton botonCerrarSesion;
     
     public CuerpoFuncionesUsuario(){
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
@@ -20,7 +21,12 @@ public class CuerpoFuncionesUsuario extends JPanel {
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
 
-        // Cracion de la tabla de rutas
+        // Creacion del boton cerrar sesion
+        botonCerrarSesion = new JButton("Cerrar Sesión");
+        JPanel panelBotonCerrarSesion = CrearSubPanel.subPanel();
+        panelBotonCerrarSesion.add(botonCerrarSesion);
+
+        // Creacion de la tabla de rutas
         String[] nombreColumnasRutas = {"Nombre de Ruta", "Tipo de Ruta", "Inicio de Jornada", "Final de Jornada", "Unidades Asignadas(Placa)"};
         filasTablaRutas = new DefaultTableModel(nombreColumnasRutas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
             @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
@@ -64,5 +70,8 @@ public class CuerpoFuncionesUsuario extends JPanel {
     }
     public DefaultTableModel getModeloTablaReservas(){
         return filasTablaReservas;
+    }
+    public JButton getBotonCerrarSesion(){
+        return botonCerrarSesion;
     }
 }
