@@ -11,16 +11,18 @@ public class CuerpoFuncionesUsuario extends JPanel {
     
     private JTable tablaRutas;
     private JTable tablaReservas;
+    private DefaultTableModel filasTablaRutas;
+    private DefaultTableModel filasTablaReservas;
     
     public CuerpoFuncionesUsuario(){
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto dispoble de la pagina
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
         this.setOpaque(true);
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
 
         // Cracion de la tabla de rutas
         String[] nombreColumnasRutas = {"Nombre de Ruta", "Tipo de Ruta", "Inicio de Jornada", "Final de Jornada", "Unidades Asignadas(Placa)"};
-        DefaultTableModel filasTablaRutas = new DefaultTableModel(nombreColumnasRutas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
+        filasTablaRutas = new DefaultTableModel(nombreColumnasRutas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
             @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
             public boolean isCellEditable(int row, int column) {
             return false;
@@ -37,7 +39,7 @@ public class CuerpoFuncionesUsuario extends JPanel {
 
         // Cracion de la tabla de Reservas
         String[] nombreColumnasReservas = {"Unidades Asignadas(Placa)", "Conductor", "Hora de salida", "Ruta"};
-        DefaultTableModel filasTablaReservas = new DefaultTableModel(nombreColumnasReservas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
+        filasTablaReservas = new DefaultTableModel(nombreColumnasReservas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
             @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
             public boolean isCellEditable(int row, int column) {
             return false;
@@ -55,5 +57,12 @@ public class CuerpoFuncionesUsuario extends JPanel {
         // --------------------------------------- disposicion del panel central del Cuerpo(FuncionesUsuarios) -------------------------------------------- 
         add(panelTablaRutas);
         add(panelTablaReservas);
+    }
+    // ----------------------------------------- Acceso para los controladores ---------------------------------------------------------
+    public DefaultTableModel getModeloTablaRutas(){
+        return filasTablaRutas;
+    }
+    public DefaultTableModel getModeloTablaReservas(){
+        return filasTablaReservas;
     }
 }

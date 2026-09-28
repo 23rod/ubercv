@@ -10,16 +10,17 @@ import vista.PlantillaVista.CrearSubPanel;
 public class CuerpoFuncionesConductor extends JPanel {
     
     private JTable tablaUnidades;
+    private DefaultTableModel filasTablaUnidades;
 
     public CuerpoFuncionesConductor(){
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto dispoble de la pagina
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
         this.setOpaque(true);
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
 
         // Creacion de la tabla de rutas
         String[] nombreColumnas = {"Placa", "Modelo", "Capacidad", "Estado Operativo", "Confirmar Actividad"};
-        DefaultTableModel filasTablaUnidades = new DefaultTableModel(nombreColumnas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
+        filasTablaUnidades = new DefaultTableModel(nombreColumnas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
             @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
             public boolean isCellEditable(int row, int column) {
             return false;
@@ -36,5 +37,8 @@ public class CuerpoFuncionesConductor extends JPanel {
 
         // --------------------------------------- disposicion del panel central del Cuerpo(FuncionesConductor) -------------------------------------------- 
         add(panelTablaUnidades);
+    }
+    public DefaultTableModel getModeloTablaUnidades(){
+        return filasTablaUnidades;
     }
 }

@@ -14,14 +14,15 @@ public class CuerpoRegistroUnidad extends JPanel {
     private JComboBox<String> estadoUnidad;
     private JButton botonConfirmar;
     private JTable tablaUnidades;
+    private DefaultTableModel filasTablaUnidades;
     
     public CuerpoRegistroUnidad(){
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto dispoble de la pagina
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
         this.setOpaque(true);
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
         
-        // Creacion del placehodler Placa
+        // Creacion del placeholder Placa
         JLabel placaLabel = new JLabel("Placa:"); //disposición en el panel contenedor
         campoPlaca = new JTextField(20);
         JPanel panelPlaca = CrearSubPanel.subPanel();
@@ -57,7 +58,7 @@ public class CuerpoRegistroUnidad extends JPanel {
 
         // Cracion de la tabla de rutas
         String[] nombreColumnas = {"Placa", "Modelo", "Capacidad", "Estado Operativo"};
-        DefaultTableModel filasTablaUnidades = new DefaultTableModel(nombreColumnas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
+        filasTablaUnidades = new DefaultTableModel(nombreColumnas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
             @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
             public boolean isCellEditable(int row, int column) {
             return false;
@@ -71,7 +72,6 @@ public class CuerpoRegistroUnidad extends JPanel {
         
         JPanel panelTablaUnidades = CrearSubPanel.subPanel(); // Ingraso la tablas con scroll en un panel para modificar sus dumensiones y ubicacion.
         panelTablaUnidades.add(tablaConScroll);
-
 
         // --------------------------------------- disposicion del panel central del Cuerpo(Registro) -------------------------------------------- 
         
@@ -93,11 +93,14 @@ public class CuerpoRegistroUnidad extends JPanel {
     public JTextField getcampoCapacidad(){
         return campoCapacidad;
     }
-        public String getEstadoSeleccionado(){
+    public String getEstadoSeleccionado(){
          return (String) estadoUnidad.getSelectedItem(); 
     }
     public JButton getBotonConfirmar(){
         return botonConfirmar;
+    }
+    public DefaultTableModel getModeloTablaUnidades(){
+        return filasTablaUnidades;
     }
 }
   
