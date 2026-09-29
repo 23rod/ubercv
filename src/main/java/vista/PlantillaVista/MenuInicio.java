@@ -25,6 +25,8 @@ import java.awt.Dimension;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
+import controlador.Control;
+
 
 public class MenuInicio extends JFrame {    
 
@@ -210,7 +212,8 @@ public class MenuInicio extends JFrame {
         botonIniciarSesion.setForeground(Color.WHITE);
         botonIniciarSesion.addActionListener(e -> {
             // Acción al hacer clic en el botón "Iniciar Sesión"
-            VentanaInicioSesion ventanaInicioSesion = new VentanaInicioSesion("","");
+            //VERIFICAR EL ARGUMENTO DEL CONSTRUCTOR "CONTROL"
+            VentanaInicioSesion ventanaInicioSesion = new VentanaInicioSesion(new Control());
             ventanaInicioSesion.setVisible(true);
         });
         panel.add(botonIniciarSesion);
