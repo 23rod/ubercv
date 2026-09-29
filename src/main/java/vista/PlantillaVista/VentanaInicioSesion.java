@@ -16,12 +16,17 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JPasswordField;
 
+import controlador.Control;
+import modelo.Resultado;
+import modelo.Rol;
+import vista.PlantillaVista.CuerposDelSistema.CuerpoRegistro;
+
 public class VentanaInicioSesion extends JFrame {
     private JTextField nombreUsuarioField;
     private JPasswordField contrasenaUsuarioField;
 
     // Constructor: dimensiones, campos, botones,
-    public VentanaInicioSesion(String correoGuardado, String contrasenaGuardada) {
+    public VentanaInicioSesion(Control control) {
         
         //Creamos la ventana y colocamos un título
         super("Inicio de Sesión"); //herencia de JFrame
@@ -40,7 +45,7 @@ public class VentanaInicioSesion extends JFrame {
         JPanel panel = Panel();
 
         //Creamos los botones de registrarse e iniciar sesión
-        crearBotones(panel, correoGuardado, contrasenaGuardada);     
+        crearBotones(panel, control);     
 
 
 
@@ -108,7 +113,7 @@ public class VentanaInicioSesion extends JFrame {
         panel.add(contrasenaUsuarioField);
     }
 
-    private void crearBotones(JPanel panel, String correoGuardado, String contrasenaGuardada) {
+    private void crearBotones(JPanel panel, Control control) {
         //Boton para iniciar sesión
         JButton botonIniciarSesion = new JButton("Iniciar Sesión");
         botonIniciarSesion.setBounds(165, 300, 150, 30);
@@ -120,7 +125,7 @@ public class VentanaInicioSesion extends JFrame {
             
         //Logica para iniciar sesión e ingresar al menu de usuario
         //Falta ingresar la clase de menu de usuario para que se pueda abrir la ventana del menu de usuario
-        botonIrMenuUsuario(botonIniciarSesion, correoGuardado, contrasenaGuardada); 
+        botonIrMenuUsuario(botonIniciarSesion, control); 
         //Falta ingresar la clase de registro para que se pueda abrir la ventana de registro
         botonIrRegistro(botonRegistro); 
 
@@ -131,22 +136,26 @@ public class VentanaInicioSesion extends JFrame {
     }
 
     //Lógica para abrir la ventana del menu de usuario al iniciar sesión
-    private void botonIrMenuUsuario( JButton botonIniciarSesion, String correoGuardado, String contrasenaGuardada) {
+    private void botonIrMenuUsuario( JButton botonIniciarSesion, Control control) {
 
         //Vincular el listener al boton de iniciar sesión
         botonIniciarSesion.addActionListener(e -> {
             //Extraer los valores de los campos de texto
             String correoRecibido = nombreUsuarioField.getText();
             String contrasenaRecibida = new String(contrasenaUsuarioField.getPassword());
+            
             //Validación para verificar si el correo y la contraseña coinciden con los datos guardados del "Modelo"
-            if(correoRecibido.equals(correoGuardado) && contrasenaRecibida.equals(contrasenaGuardada)) {
-                // Iniciar sesión exitosa: ir al menu de usuario
+            Resultado<Rol> r = control.iniciarSesion(correoRecibido, contrasenaRecibida);
+            
+            if (r.isOk()) { 
+                dispose(); control.abrirVentanaPrincipal(); 
                 
-
-                this.dispose(); // Cierra la ventana de inicio de sesión
+            }
+            else { 
+                JOptionPane.showMessageDialog(this, r.getMensaje());
+                // Iniciar sesión exitosa: ir al menu de usuario                
                 // Lógica para abrir la ventana principal del usuario
-
-            } else{
+            
                 //Se borra el contenido de los campos de texto para que el usuario vuelva a ingresar sus datos
                 nombreUsuarioField.setText("");
                 contrasenaUsuarioField.setText("");
@@ -156,23 +165,25 @@ public class VentanaInicioSesion extends JFrame {
 
         }); 
 
+        
+
     }
     
     private void botonIrRegistro(JButton botonRegistro) {
         //Vincular el listener al boton de registrarse
         botonRegistro.addActionListener(e -> {
             // Lógica para abrir la ventana de registro
-            
+            CuerpoRegistro ventanaRegistro = new CuerpoRegistro();
+            ventanaRegistro.setVisible(true);
             this.dispose(); // Cierra la ventana de inicio de sesión
         });
     }   
     
     //Prueba de la ventana de inicio de sesión
     public static void main(String[] args) {
-        VentanaInicioSesion ventana = new VentanaInicioSesion("","");
-        ventana.setVisible(true);
-        int a=0;
-        JOptionPane.showMessageDialog(null, a);
+        Control control = new Control();
+        VentanaInicioSesion ventana = new VentanaInicioSesion(control);
+        ventana.setVisible(true);        
     }
 
 

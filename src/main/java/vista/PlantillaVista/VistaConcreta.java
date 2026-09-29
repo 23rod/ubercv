@@ -29,5 +29,30 @@ public class VistaConcreta extends JFrame { //clase base que se usara para grafi
         add(piePagina, "South");
     }
 
+    public VistaConcreta(JPanel cuerpoInicial){
+        this.setBackground(new ColorUIResource(255,255,255));
+        this.setSize(1000, 700); 
+
+        // ------------------------------------------ Ubicacion de las partes de la pagina -----------------------------------------------
+        encabezadoGeneral = new EncabezadoGeneral();
+        add(encabezadoGeneral, "North");
+        cuerpo = cuerpoInicial;
+
+        add(cuerpo, "Center");
+
+
+        piePagina = new PiePagina();
+        add(piePagina, "South");        
+    }
+
+    public void mostrarCuerpo(JPanel nuevoCuerpo){
+         if (cuerpo != null) remove(cuerpo);
+        cuerpo = nuevoCuerpo;
+        add(cuerpo, "Center");
+        revalidate();
+        repaint();
+    }
+
+
 }
 
