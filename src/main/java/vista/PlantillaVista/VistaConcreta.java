@@ -11,24 +11,7 @@ public class VistaConcreta extends JFrame { //clase base que se usara para grafi
     private JPanel cuerpo;
     private PiePagina piePagina;
 
-    public VistaConcreta(){
-        this.setBackground(new ColorUIResource(255,255,255));
-        this.setSize(1000, 700); 
-
-        // ------------------------------------------ Ubicacion de las partes de la pagina -----------------------------------------------
-        encabezadoGeneral = new EncabezadoGeneral();
-        add(encabezadoGeneral, "North");
-
-        // Condicional al rol de la apertura se decidira luego de hacer el controlador correspondiente
-        // Para seleccionar un cuerpo de lapagina camviar constructor
-        cuerpo = new CuerpoFuncionesUsuario();
-        add(cuerpo, "Center");
-
-
-        piePagina = new PiePagina();
-        add(piePagina, "South");
-    }
-
+    // --- CONSTRUCTOR NUEVO (Acuerdo de arquitectura) ---
     public VistaConcreta(JPanel cuerpoInicial){
         this.setBackground(new ColorUIResource(255,255,255));
         this.setSize(1000, 700); 
@@ -36,15 +19,15 @@ public class VistaConcreta extends JFrame { //clase base que se usara para grafi
         // ------------------------------------------ Ubicacion de las partes de la pagina -----------------------------------------------
         encabezadoGeneral = new EncabezadoGeneral();
         add(encabezadoGeneral, "North");
+        
         cuerpo = cuerpoInicial;
-
         add(cuerpo, "Center");
-
 
         piePagina = new PiePagina();
         add(piePagina, "South");        
     }
 
+    // --- METODO DE NAVEGACION DINAMICA ---
     public void mostrarCuerpo(JPanel nuevoCuerpo){
          if (cuerpo != null) remove(cuerpo);
         cuerpo = nuevoCuerpo;
@@ -52,7 +35,4 @@ public class VistaConcreta extends JFrame { //clase base que se usara para grafi
         revalidate();
         repaint();
     }
-
-
 }
-

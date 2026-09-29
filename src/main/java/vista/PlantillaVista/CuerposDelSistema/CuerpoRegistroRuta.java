@@ -15,28 +15,29 @@ public class CuerpoRegistroRuta extends JPanel {
     private JComboBox<String> plegableRuta;
     private JButton botonConfirmar;
     private JTable tablaRutas;
+    private DefaultTableModel filasTablaRutas;
 
     public CuerpoRegistroRuta(){
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto dispoble de la pagina
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
         this.setOpaque(true);
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
         
-        // Creacion del placehodler Nombre Ruta
+        // Creacion del placeholder Nombre Ruta
         JLabel nombreRutaLabel = new JLabel("Nombre Ruta:"); //disposición en el panel contenedor
         campoNombreRuta = new JTextField(20);
         JPanel panelNombreRuta = CrearSubPanel.subPanel();
         panelNombreRuta.add(nombreRutaLabel);
         panelNombreRuta.add(campoNombreRuta);
 
-        // Creacion del placehodler Inicio Jornada se ingresa la hora con formato de 24 horas "00:00"
+        // Creacion del placeholder Inicio Jornada se ingresa la hora con formato de 24 horas "00:00"
         JLabel inicioJornadaLabel = new JLabel("Inicio de Jornada:"); 
         campoInicioJornada = new JTextField(20);
         JPanel panelInicioJornada = CrearSubPanel.subPanel();
         panelInicioJornada.add(inicioJornadaLabel);
         panelInicioJornada.add(campoInicioJornada);
 
-        // Creacion del placehodler Final Jornada se ingresa la hora con formato de 24 horas "00:00"
+        // Creacion del placeholder Final Jornada se ingresa la hora con formato de 24 horas "00:00"
         JLabel finalJornadaLabel = new JLabel("Final de Jornada:"); 
         campoFinalJornada = new JTextField(20);
         JPanel panelFinalJornada = CrearSubPanel.subPanel();
@@ -58,7 +59,7 @@ public class CuerpoRegistroRuta extends JPanel {
 
         // Cracion de la tabla de rutas
         String[] nombreColumnas = {"Nombre de Ruta", "Tipo de Ruta", "Inicio de Jornada", "Final de Jornada", "Unidades Asignadas(Placa)", "Modificar Ruta"};
-        DefaultTableModel filasTablaRutas = new DefaultTableModel(nombreColumnas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
+        filasTablaRutas = new DefaultTableModel(nombreColumnas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
             @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
             public boolean isCellEditable(int row, int column) {
             return false;
@@ -99,6 +100,9 @@ public class CuerpoRegistroRuta extends JPanel {
     }
     public JButton getBotonConfirmar(){
         return botonConfirmar;
+    }
+    public DefaultTableModel getModeloTablaRutas(){
+        return filasTablaRutas;
     }
 }
  

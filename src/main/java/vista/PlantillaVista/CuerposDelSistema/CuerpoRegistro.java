@@ -6,6 +6,7 @@ import javax.swing.plaf.ColorUIResource;
 
 public class CuerpoRegistro extends JPanel {
 
+    private JTextField campoCedula;
     private JTextField campoCorreo;
     private JPasswordField campoContrasenia;
     private JPasswordField campoConfirmarContrasenia;
@@ -13,12 +14,19 @@ public class CuerpoRegistro extends JPanel {
     private JButton botonConfirmar;
     
     public CuerpoRegistro(){
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto dispoble de la pagina
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
         this.setOpaque(true);
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
 
-        // Creacion del placehodler correo
+        // Creacion del placeholder Cedula
+        JLabel cedulaLabel = new JLabel("Cédula:"); //disposición en el panel contenedor
+        campoCedula = new JTextField(20);
+        JPanel panelCedula = CrearSubPanel.subPanel();
+        panelCedula.add(cedulaLabel);
+        panelCedula.add(campoCedula);
+
+        // Creacion del placeholder correo
         JLabel correoLabel = new JLabel("Correo Electrónico:"); //disposición en el panel contenedor
         campoCorreo = new JTextField(20);
         JPanel panelCorreo = CrearSubPanel.subPanel();
@@ -54,6 +62,7 @@ public class CuerpoRegistro extends JPanel {
 
         // --------------------------------------- disposicion del panel central del Cuerpo(Registro) -------------------------------------------- 
         
+        add(panelCedula);
         add(panelCorreo);
         add(panelContrasenia);
         add(panelConfirmarContrasenia);
@@ -62,6 +71,9 @@ public class CuerpoRegistro extends JPanel {
     }
 
     // ----------------------------------------- Acceso para los controladores ---------------------------------------------------------
+    public JTextField getCampoCedula(){
+        return campoCedula;
+    }    
     public JTextField getCampoCorreo(){
         return campoCorreo;
     }
