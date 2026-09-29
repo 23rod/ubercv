@@ -2,37 +2,40 @@ package controlador;
 
 import modelo.Resultado;
 import modelo.Rol;
-import modelo.Mensajes;
+import persistencia.memoria.DatosSemilla;
+import persistencia.memoria.RepositorioUsuarios;
+import servicio.ServicioUsuarios;
 
+/** Puente entre las vistas Swing y la lógica. Las vistas solo llaman a estos métodos. */
 public class Control {
-    
-    private Rol rolSesion = Rol.NINGUNO;
+
+    private final ServicioUsuarios servicioUsuarios;
 
     public Control() {
-        // Constructor listo para inicializar servicios y repositorios en el siguiente paso
+        RepositorioUsuarios repositorioUsuarios = new RepositorioUsuarios();
+        DatosSemilla.sembrarUsuarios(repositorioUsuarios); // cuentas de demo
+        this.servicioUsuarios = new ServicioUsuarios(repositorioUsuarios);
     }
 
     public Resultado<Rol> iniciarSesion(String correo, String clave) {
-        // STUB para PR #1. Retorna error por defecto para que la vista de Edgar no falle.
-        return Resultado.error(Mensajes.LOGIN_INCORRECTO);
+        return servicioUsuarios.iniciarSesion(correo, clave);
     }
 
     public Resultado<Void> registrarUsuario(String correo, String clave, String confirmacion, String cedula, Rol rol) {
-        // STUB para PR #1.
-        return Resultado.error("Lógica de registro en construcción");
+        return servicioUsuarios.registrar(correo, clave, confirmacion, cedula, rol);
     }
 
     public void abrirVentanaPrincipal() {
-        // Aquí conectaremos con la VistaConcreta / Main en la integración
-        System.out.println("Navegando a la ventana principal...");
+        // Se conecta con VistaConcreta / mostrarCuerpo en la fase de integración
+        System.out.println("Navegando a la ventana principal como: " + getRolSesion());
     }
 
     public void cerrarSesion() {
-        this.rolSesion = Rol.NINGUNO;
+        servicioUsuarios.cerrarSesion();
         System.out.println("Sesión cerrada. Navegando al Login...");
     }
 
     public Rol getRolSesion() {
-        return rolSesion;
+        return servicioUsuarios.getRolSesion();
     }
 }
