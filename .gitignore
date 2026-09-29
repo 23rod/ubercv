@@ -1,0 +1,18 @@
+# Compilación de Maven (Binarios)
+target/
+
+# Archivos de IDE (VS Code, Eclipse, IntelliJ)
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Archivos compilados sueltos
+*.class
+*.jar
+*.war
+
+# Logs
+*.log
