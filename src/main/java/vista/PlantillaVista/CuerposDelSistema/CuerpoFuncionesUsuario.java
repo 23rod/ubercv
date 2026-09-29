@@ -13,18 +13,12 @@ public class CuerpoFuncionesUsuario extends JPanel {
     private JTable tablaReservas;
     private DefaultTableModel filasTablaRutas;
     private DefaultTableModel filasTablaReservas;
-    private JButton botonCerrarSesion;
     
     public CuerpoFuncionesUsuario(){
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
         this.setOpaque(true);
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
-
-        // Creacion del boton cerrar sesion
-        botonCerrarSesion = new JButton("Cerrar Sesión");
-        JPanel panelBotonCerrarSesion = CrearSubPanel.subPanel();
-        panelBotonCerrarSesion.add(botonCerrarSesion);
 
         // Creacion de la tabla de rutas
         String[] nombreColumnasRutas = {"Nombre de Ruta", "Tipo de Ruta", "Inicio de Jornada", "Final de Jornada", "Unidades Asignadas(Placa)"};
@@ -70,8 +64,5 @@ public class CuerpoFuncionesUsuario extends JPanel {
     }
     public DefaultTableModel getModeloTablaReservas(){
         return filasTablaReservas;
-    }
-    public JButton getBotonCerrarSesion(){
-        return botonCerrarSesion;
     }
 }

@@ -8,7 +8,6 @@ public class CuerpoFuncionesAdmin extends JPanel {
 
     private JButton botonFlota;
     private JButton botonItinerarios;
-    private JButton botonCerrarSesion;
     
     public CuerpoFuncionesAdmin(){
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
@@ -26,27 +25,18 @@ public class CuerpoFuncionesAdmin extends JPanel {
         JPanel panelBotonItinerarios = CrearSubPanel.subPanel();
         panelBotonItinerarios.add(botonItinerarios);
 
-        // Creacion del boton cerrar sesion
-        botonCerrarSesion = new JButton("Cerrar Sesión");
-        JPanel panelBotonCerrarSesion = CrearSubPanel.subPanel();
-        panelBotonCerrarSesion.add(botonCerrarSesion);
-
-        // --------------------------------------- disposicion del panel central del Cuerpo(Registro) -------------------------------------------- 
+        // --------------------------------------- Disposicion del panel central del Cuerpo(Registro) -------------------------------------------- 
         
         add(panelBotonFlota);
         add(panelBotonItinerarios);
-        add(panelBotonCerrarSesion);
     }
 
     // ----------------------------------------- Acceso para los controladores ---------------------------------------------------------
     public JButton getBotonFlota(){
         return botonFlota;
     }
-    public JButton getBotorItinerario(){
+    public JButton getBotonItinerario(){
         return botonItinerarios;
     }   
-    public JButton getBotonCerrarSesion(){
-        return botonCerrarSesion;
-    }
 }
  
