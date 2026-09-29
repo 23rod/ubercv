@@ -21,13 +21,11 @@ public class VistaConcreta extends JFrame { //clase base que se usara para grafi
 
         // Condicional al rol de la apertura se decidira luego de hacer el controlador correspondiente
         // Para seleccionar un cuerpo de lapagina camviar constructor
-        cuerpo = new CuerpoFuncionesUsuario();
+        cuerpo = new CuerpoFuncionesAdmin();
         add(cuerpo, "Center");
-
 
         piePagina = new PiePagina();
         add(piePagina, "South");
     }
-
 }
 
