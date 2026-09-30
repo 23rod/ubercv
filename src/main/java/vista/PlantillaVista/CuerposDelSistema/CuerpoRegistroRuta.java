@@ -95,7 +95,7 @@ public class CuerpoRegistroRuta extends JPanel {
     public JTextField getcampoFinalJornada(){
         return campoFinalJornada;
     }    
-    public String getRutaSeleccionada(){
+    public String getTipoRutaSeleccionada(){
          return (String) plegableRuta.getSelectedItem(); 
     }
     public JButton getBotonConfirmar(){
