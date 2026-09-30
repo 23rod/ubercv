@@ -14,6 +14,7 @@ public class CuerpoRegistroRuta extends JPanel {
     private JTextField campoFinalJornada;
     private JComboBox<String> plegableRuta;
     private JButton botonConfirmar;
+    private JButton botonAsignarUnidad;
     private JTable tablaRutas;
     private DefaultTableModel filasTablaRutas;
 
@@ -54,8 +55,13 @@ public class CuerpoRegistroRuta extends JPanel {
  
         // Creacion del boton confirmar
         botonConfirmar = new JButton("Confirmar");
-        JPanel panelBoton = CrearSubPanel.subPanel();
-        panelBoton.add(botonConfirmar);
+        JPanel panelBotonConfirmar = CrearSubPanel.subPanel();
+        panelBotonConfirmar.add(botonConfirmar);
+
+        // Creacion del boton confirmar
+        botonAsignarUnidad = new JButton("Confirmar");
+        JPanel panelBotonAsignarUnidad = CrearSubPanel.subPanel();
+        panelBotonAsignarUnidad.add(botonConfirmar);
 
         // Cracion de la tabla de rutas
         String[] nombreColumnas = {"Nombre de Ruta", "Tipo de Ruta", "Inicio de Jornada", "Final de Jornada", "Unidades Asignadas(Placa)", "Modificar Ruta"};
@@ -81,7 +87,8 @@ public class CuerpoRegistroRuta extends JPanel {
         add(panelInicioJornada);
         add(panelFinalJornada);
         add(panelPlegableTipoRuta);
-        add(panelBoton);
+        add(panelBotonConfirmar);
+        add(panelBotonAsignarUnidad);
         add(panelTablaRutas);
     }
 
@@ -95,11 +102,14 @@ public class CuerpoRegistroRuta extends JPanel {
     public JTextField getcampoFinalJornada(){
         return campoFinalJornada;
     }    
-    public String getRutaSeleccionada(){
+    public String getTipoRutaSeleccionada(){
          return (String) plegableRuta.getSelectedItem(); 
     }
     public JButton getBotonConfirmar(){
         return botonConfirmar;
+    }
+    public JButton getBotonAsignarUnidad(){
+        return botonAsignarUnidad;
     }
     public DefaultTableModel getModeloTablaRutas(){
         return filasTablaRutas;

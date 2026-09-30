@@ -96,6 +96,9 @@ public class CuerpoRegistroUnidad extends JPanel {
     public String getEstadoSeleccionado(){
          return (String) estadoUnidad.getSelectedItem(); 
     }
+    public String getComboUnidades(){
+         return (String) estadoUnidad.getSelectedItem(); 
+    }
     public JButton getBotonConfirmar(){
         return botonConfirmar;
     }
