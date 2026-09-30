@@ -1,12 +1,8 @@
 import javax.swing.SwingUtilities;
-
-import vista.PlantillaVista.VistaConcreta;
+import vista.PlantillaVista.MenuInicio;
 
 public class Main {
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            VistaConcreta vista = new VistaConcreta();
-            vista.setVisible(true);
-        });
-    } 
+        SwingUtilities.invokeLater(() -> new MenuInicio().setVisible(true));
+    }
 }

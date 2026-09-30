@@ -38,4 +38,8 @@ public class Control {
     public Rol getRolSesion() {
         return servicioUsuarios.getRolSesion();
     }
+
+    public void abrirRegistro() {
+        System.out.println("Abriendo registro..."); // se conecta en la integración
+    }
 }

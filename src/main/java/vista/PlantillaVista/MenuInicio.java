@@ -30,7 +30,7 @@ import controlador.Control;
 
 public class MenuInicio extends JFrame {    
 
-    MenuInicio() {
+    public MenuInicio() {
         
         //Inicializamos la ventana y le damos un nombre a la ventana
         super("Sistema Gestión de Transporte: UberCV");
