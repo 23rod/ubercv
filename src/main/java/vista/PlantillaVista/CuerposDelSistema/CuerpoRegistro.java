@@ -90,10 +90,6 @@ public class CuerpoRegistro extends JPanel {
         return botonConfirmar;
     }
 
-    public static void main(String[] args) {
-        CuerpoRegistro nuevo = new CuerpoRegistro();
-        nuevo.setVisible(true);
-    }
 
     
 }

@@ -1,8 +1,9 @@
+import controlador.Control;
 import javax.swing.SwingUtilities;
-import vista.PlantillaVista.MenuInicio;
 
 public class Main {
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new MenuInicio().setVisible(true));
+        // Un unico Control para toda la aplicacion: comparte usuarios y sesion entre todas las ventanas
+        SwingUtilities.invokeLater(() -> new Control().abrirMenuInicio());
     }
 }

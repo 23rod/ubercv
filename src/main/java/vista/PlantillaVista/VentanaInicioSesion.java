@@ -19,7 +19,6 @@ import javax.swing.JPasswordField;
 import controlador.Control;
 import modelo.Resultado;
 import modelo.Rol;
-import vista.PlantillaVista.CuerposDelSistema.CuerpoRegistro;
 
 public class VentanaInicioSesion extends JFrame {
     private JTextField nombreUsuarioField;
@@ -127,7 +126,7 @@ public class VentanaInicioSesion extends JFrame {
         //Falta ingresar la clase de menu de usuario para que se pueda abrir la ventana del menu de usuario
         botonIrMenuUsuario(botonIniciarSesion, control); 
         //Falta ingresar la clase de registro para que se pueda abrir la ventana de registro
-        botonIrRegistro(botonRegistro); 
+        botonIrRegistro(botonRegistro, control); 
 
 
         panel.add(botonIniciarSesion);
@@ -169,13 +168,11 @@ public class VentanaInicioSesion extends JFrame {
 
     }
     
-    private void botonIrRegistro(JButton botonRegistro) {
+    private void botonIrRegistro(JButton botonRegistro, Control control) {
         //Vincular el listener al boton de registrarse
         botonRegistro.addActionListener(e -> {
-            // Lógica para abrir la ventana de registro
-            CuerpoRegistro ventanaRegistro = new CuerpoRegistro();
-            ventanaRegistro.setVisible(true);
-            this.dispose(); // Cierra la ventana de inicio de sesión
+            control.abrirRegistro(); // el Control abre la ventana de registro y cierra las demas
+            this.dispose();
         });
     }   
     

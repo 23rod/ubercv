@@ -30,10 +30,13 @@ import controlador.Control;
 
 public class MenuInicio extends JFrame {    
 
-    public MenuInicio() {
+    private final Control control; // unico Control de la aplicacion (lo crea Main)
+
+    public MenuInicio(Control control) {
         
         //Inicializamos la ventana y le damos un nombre a la ventana
         super("Sistema Gestión de Transporte: UberCV");
+        this.control = control;
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Obtenemos las dimensiones del monitor 
@@ -213,7 +216,7 @@ public class MenuInicio extends JFrame {
         botonIniciarSesion.addActionListener(e -> {
             // Acción al hacer clic en el botón "Iniciar Sesión"
             //VERIFICAR EL ARGUMENTO DEL CONSTRUCTOR "CONTROL"
-            VentanaInicioSesion ventanaInicioSesion = new VentanaInicioSesion(new Control());
+            VentanaInicioSesion ventanaInicioSesion = new VentanaInicioSesion(control);
             ventanaInicioSesion.setVisible(true);
         });
         panel.add(botonIniciarSesion);
@@ -222,7 +225,7 @@ public class MenuInicio extends JFrame {
 
 
     public static void main(String[] args) {
-        MenuInicio menuInicio = new MenuInicio();
+        MenuInicio menuInicio = new MenuInicio(new Control());
         menuInicio.setVisible(true);
     }
     
