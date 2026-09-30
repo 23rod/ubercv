@@ -39,4 +39,16 @@ class DatosSemillaTest {
         assertEquals(Rol.NINGUNO, DatosSemilla.validarEnPadron("99999999"));
         assertEquals(Rol.NINGUNO, DatosSemilla.validarEnPadron(null));
     }
+
+    @Test
+    void laFlotaDeDemoTieneUnidadesYRutasYUnaUnidadAsignada() {
+        persistencia.memoria.RepositorioUnidades unidades = new persistencia.memoria.RepositorioUnidades();
+        persistencia.memoria.RepositorioRutas rutas = new persistencia.memoria.RepositorioRutas();
+        DatosSemilla.sembrarFlota(unidades, rutas);
+
+        assertEquals(3, unidades.listar().size());
+        assertEquals(2, rutas.listar().size());
+        assertEquals("UCV - Altamira", unidades.buscarPorPlaca("ABC123").getNombreRuta());
+        assertEquals(modelo.EstadoUnidad.EN_MANTENIMIENTO, unidades.buscarPorPlaca("GHI789").getEstado());
+    }
 }

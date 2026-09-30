@@ -16,4 +16,31 @@ public class Mensajes {
 
     // Control de acceso por rol (RBAC)
     public static final String ACCESO_DENEGADO = "No tiene permisos para realizar esta acción";
+
+    // Comunes a flota y rutas
+    public static final String CAMPOS_OBLIGATORIOS = "Complete todos los campos";
+
+    // HU09 - Registro de unidades
+    public static final String UNIDAD_GUARDADA = "Unidad guardada correctamente";
+    public static final String UNIDAD_EXISTENTE = "Unidad ya existente";
+    public static final String PLACA_INVALIDA = "Placa no válida (use de 5 a 8 letras o números)";
+    public static final String CAPACIDAD_INVALIDA = "La capacidad debe ser un número entero mayor que cero";
+    public static final String ESTADO_REQUERIDO = "Seleccione un estado";
+    public static final String UNIDAD_NO_ENCONTRADA = "Unidad no encontrada";
+    public static final String ESTADO_ACTUALIZADO = "Estado de la unidad actualizado";
+
+    // HU10 - Definir rutas y horarios
+    public static final String RUTA_GUARDADA = "Ruta guardada correctamente";
+    public static final String RUTA_EXISTENTE = "Ruta ya existente";
+    public static final String RUTA_REDEFINIDA = "Ruta redefinida";
+    public static final String RUTA_NO_ENCONTRADA = "Ruta no encontrada";
+    public static final String TIPO_RUTA_REQUERIDO = "Seleccione un tipo de ruta";
+    public static final String HORARIO_INVALIDO = "Horario no válido: use el formato HH:mm y que el inicio sea anterior al final";
+
+    // HU12 - Asignar unidad a ruta
+    public static final String UNIDAD_ASIGNADA = "Unidad asignada correctamente";
+    public static final String UNIDAD_REASIGNADA = "Unidad reasignada correctamente";
+    public static final String CONFIRMAR_CAMBIO = "¿Está seguro del cambio?";
+    public static final String UNIDAD_YA_ASIGNADA = "En esta ruta ya se encuentra asignada la unidad";
+    public static final String UNIDAD_NO_ACTIVA = "Solo se pueden asignar unidades en estado Activo";
 }

@@ -1,8 +1,13 @@
 package persistencia.memoria;
 
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
+import modelo.EstadoUnidad;
 import modelo.Rol;
+import modelo.Ruta;
+import modelo.TipoRuta;
+import modelo.UnidadTransporte;
 import modelo.Usuario;
 import utilidades.seguridad.HashClave;
 
@@ -51,6 +56,21 @@ public class DatosSemilla {
         crear(repositorio, "estudiante@ucv.com", "20000001", Rol.ESTUDIANTE);
         crear(repositorio, "empleado@ucv.com", "20000002", Rol.EMPLEADO);
         crear(repositorio, "conductor@ucv.com", "20000003", Rol.CONDUCTOR);
+    }
+
+    /**
+     * Flota y rutas de demo: 3 unidades (una en mantenimiento) y 2 rutas.
+     * La unidad ABC123 arranca asignada a "UCV - Altamira".
+     */
+    public static void sembrarFlota(RepositorioUnidades unidades, RepositorioRutas rutas) {
+        rutas.guardar(new Ruta("UCV - Altamira", TipoRuta.URBANA, LocalTime.of(6, 0), LocalTime.of(20, 0)));
+        rutas.guardar(new Ruta("UCV - Guarenas", TipoRuta.EXTRAURBANA, LocalTime.of(5, 30), LocalTime.of(19, 30)));
+
+        UnidadTransporte primera = new UnidadTransporte("ABC123", "Yutong ZK6", 40, EstadoUnidad.ACTIVO);
+        primera.setNombreRuta("UCV - Altamira");
+        unidades.guardar(primera);
+        unidades.guardar(new UnidadTransporte("DEF456", "Encava E-NT610", 35, EstadoUnidad.ACTIVO));
+        unidades.guardar(new UnidadTransporte("GHI789", "Mercedes Benz O500", 45, EstadoUnidad.EN_MANTENIMIENTO));
     }
 
     private static void crear(RepositorioUsuarios repositorio, String correo, String cedula, Rol rol) {

@@ -4,16 +4,30 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Window;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.table.DefaultTableModel;
+import modelo.EstadoUnidad;
+import modelo.Mensajes;
 import modelo.Resultado;
 import modelo.Rol;
+import modelo.Ruta;
+import modelo.TipoRuta;
+import modelo.UnidadTransporte;
 import persistencia.memoria.DatosSemilla;
+import persistencia.memoria.RepositorioRutas;
+import persistencia.memoria.RepositorioUnidades;
 import persistencia.memoria.RepositorioUsuarios;
+import servicio.ServicioFlota;
+import servicio.ServicioItinerarios;
 import servicio.ServicioUsuarios;
 import vista.PlantillaVista.MenuInicio;
+import vista.PlantillaVista.PanelGestionRutas;
 import vista.PlantillaVista.VistaConcreta;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoFuncionesAdmin;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoFuncionesConductor;
@@ -29,12 +43,22 @@ import vista.PlantillaVista.CuerposDelSistema.CuerpoRegistroUnidad;
  */
 public class Control {
 
+    private static final DateTimeFormatter HORA = DateTimeFormatter.ofPattern("HH:mm");
+
     private final ServicioUsuarios servicioUsuarios;
+    private final ServicioFlota servicioFlota;
+    private final ServicioItinerarios servicioItinerarios;
 
     public Control() {
         RepositorioUsuarios repositorioUsuarios = new RepositorioUsuarios();
         DatosSemilla.sembrarUsuarios(repositorioUsuarios); // cuentas de demo
         this.servicioUsuarios = new ServicioUsuarios(repositorioUsuarios);
+
+        RepositorioUnidades repositorioUnidades = new RepositorioUnidades();
+        RepositorioRutas repositorioRutas = new RepositorioRutas();
+        DatosSemilla.sembrarFlota(repositorioUnidades, repositorioRutas); // unidades y rutas de demo
+        this.servicioFlota = new ServicioFlota(repositorioUnidades, servicioUsuarios);
+        this.servicioItinerarios = new ServicioItinerarios(repositorioRutas, repositorioUnidades, servicioUsuarios);
     }
 
     // ------------------------------------------------------------------ Lógica
@@ -59,7 +83,7 @@ public class Control {
     /** HU01: ventana de registro. Al registrar con éxito regresa al menú principal. */
     public void abrirRegistro() {
         CuerpoRegistro cuerpo = new CuerpoRegistro();
-        VistaConcreta vista = new VistaConcreta(conBotonVolver(cuerpo, this::abrirMenuInicio));
+        VistaConcreta vista = new VistaConcreta(conBotonVolver(cuerpo, null, this::abrirMenuInicio));
         prepararVentana(vista, false); // sin sesión: el botón Cerrar Sesión se oculta
 
         cuerpo.getBotonConfirmar().addActionListener(e -> {
@@ -96,7 +120,9 @@ public class Control {
                 cuerpo = new CuerpoFuncionesConductor();
                 break;
             default: // ESTUDIANTE y EMPLEADO
-                cuerpo = new CuerpoFuncionesUsuario();
+                CuerpoFuncionesUsuario menuUsuario = new CuerpoFuncionesUsuario();
+                llenarTablaRutas(menuUsuario.getModeloTablaRutas(), false); // lista de rutas con sus unidades y cupos
+                cuerpo = menuUsuario;
         }
 
         VistaConcreta vista = new VistaConcreta(cuerpo);
@@ -116,16 +142,155 @@ public class Control {
     // ----------------------------------------------------------------- Interno
     /** Menú del admin: Flota e Itinerarios (solo ADMIN_TRANSPORTE). */
     private void conectarMenuAdmin(VistaConcreta vista, CuerpoFuncionesAdmin menu) {
+        Runnable volverAlMenu = () -> vista.mostrarCuerpo(menu);
+
         menu.getBotonFlota().addActionListener(e -> {
             if (accesoAdmin(vista)) {
-                vista.mostrarCuerpo(conBotonVolver(new CuerpoRegistroUnidad(), () -> vista.mostrarCuerpo(menu)));
+                CuerpoRegistroUnidad cuerpo = new CuerpoRegistroUnidad();
+                conectarFlota(cuerpo);
+                vista.mostrarCuerpo(conBotonVolver(cuerpo, null, volverAlMenu));
             }
         });
         menu.getBotonItinerario().addActionListener(e -> {
             if (accesoAdmin(vista)) {
-                vista.mostrarCuerpo(conBotonVolver(new CuerpoRegistroRuta(), () -> vista.mostrarCuerpo(menu)));
+                CuerpoRegistroRuta cuerpo = new CuerpoRegistroRuta();
+                PanelGestionRutas panel = new PanelGestionRutas();
+                conectarRutas(cuerpo, panel);
+                vista.mostrarCuerpo(conBotonVolver(cuerpo, panel, volverAlMenu));
             }
         });
+    }
+
+    // ------------------------------------------------------ HU09: Gestión de Flota
+    private void conectarFlota(CuerpoRegistroUnidad cuerpo) {
+        llenarTablaUnidades(cuerpo.getModeloTablaUnidades());
+        cuerpo.getBotonConfirmar().addActionListener(e -> {
+            Resultado<Void> r = servicioFlota.registrarUnidad(
+                    cuerpo.getcampoPlaca().getText(),
+                    cuerpo.getcampoModelo().getText(),
+                    cuerpo.getcampoCapacidad().getText(),
+                    EstadoUnidad.desdeTexto(cuerpo.getEstadoSeleccionado())); // "Ninguno" llega como null
+            JOptionPane.showMessageDialog(cuerpo, r.getMensaje());
+            if (r.isOk()) {
+                cuerpo.getcampoPlaca().setText("");
+                cuerpo.getcampoModelo().setText("");
+                cuerpo.getcampoCapacidad().setText("");
+                llenarTablaUnidades(cuerpo.getModeloTablaUnidades());
+            }
+        });
+    }
+
+    // ------------------------------------ HU10 y HU12: Control de Itinerarios
+    private void conectarRutas(CuerpoRegistroRuta cuerpo, PanelGestionRutas panel) {
+        Runnable refrescar = () -> {
+            llenarTablaRutas(cuerpo.getModeloTablaRutas(), true);
+            panel.actualizarRutas(nombresDeRutas());
+            panel.actualizarUnidades(placasDeUnidades());
+        };
+        refrescar.run();
+
+        // HU10: crear ruta
+        cuerpo.getBotonConfirmar().addActionListener(e -> {
+            Resultado<Void> r = servicioItinerarios.crearRuta(
+                    cuerpo.getcampoNombreRuta().getText(),
+                    TipoRuta.desdeTexto(cuerpo.getTipoRutaSeleccionada()), // devuelve el TIPO de ruta (Urbana / Extraurbana)
+                    cuerpo.getcampoInicioJornada().getText(),
+                    cuerpo.getcampoFinalJornada().getText());
+            JOptionPane.showMessageDialog(cuerpo, r.getMensaje());
+            if (r.isOk()) {
+                limpiarFormularioRuta(cuerpo);
+                refrescar.run();
+            }
+        });
+
+        // HU10: redefinir la ruta elegida con los datos del formulario
+        panel.getBotonRedefinir().addActionListener(e -> {
+            Resultado<Void> r = servicioItinerarios.redefinirRuta(
+                    panel.getRutaElegida(),
+                    cuerpo.getcampoNombreRuta().getText(),
+                    TipoRuta.desdeTexto(cuerpo.getTipoRutaSeleccionada()),
+                    cuerpo.getcampoInicioJornada().getText(),
+                    cuerpo.getcampoFinalJornada().getText());
+            JOptionPane.showMessageDialog(cuerpo, r.getMensaje());
+            if (r.isOk()) {
+                limpiarFormularioRuta(cuerpo);
+                refrescar.run();
+            }
+        });
+
+        // HU12: asignar unidad a ruta (pide confirmación si la unidad ya está en otra ruta)
+        panel.getBotonAsignar().addActionListener(e -> {
+            String placa = panel.getUnidadElegida();
+            String ruta = panel.getRutaElegida();
+            boolean confirmado = false;
+            if (placa != null && ruta != null && servicioItinerarios.requiereConfirmacion(placa, ruta)) {
+                int opcion = JOptionPane.showConfirmDialog(cuerpo, Mensajes.CONFIRMAR_CAMBIO,
+                        "Confirmar cambio", JOptionPane.YES_NO_OPTION);
+                if (opcion != JOptionPane.YES_OPTION) {
+                    return;
+                }
+                confirmado = true;
+            }
+            Resultado<Void> r = servicioItinerarios.asignarUnidad(placa, ruta, confirmado);
+            JOptionPane.showMessageDialog(cuerpo, r.getMensaje());
+            if (r.isOk()) {
+                refrescar.run();
+            }
+        });
+    }
+
+    private void limpiarFormularioRuta(CuerpoRegistroRuta cuerpo) {
+        cuerpo.getcampoNombreRuta().setText("");
+        cuerpo.getcampoInicioJornada().setText("");
+        cuerpo.getcampoFinalJornada().setText("");
+    }
+
+    private List<String> nombresDeRutas() {
+        List<String> nombres = new ArrayList<>();
+        for (Ruta ruta : servicioItinerarios.listarRutas()) {
+            nombres.add(ruta.getNombre());
+        }
+        return nombres;
+    }
+
+    private List<String> placasDeUnidades() {
+        List<String> placas = new ArrayList<>();
+        for (UnidadTransporte unidad : servicioFlota.listarUnidades()) {
+            placas.add(unidad.getPlaca());
+        }
+        return placas;
+    }
+
+    // --------------------------------------------------------- Llenado de tablas
+    private void llenarTablaUnidades(DefaultTableModel modelo) {
+        modelo.setRowCount(0); // las tablas de la vista nacen con filas vacías
+        for (UnidadTransporte u : servicioFlota.listarUnidades()) {
+            modelo.addRow(new Object[] {u.getPlaca(), u.getModelo(), u.getCapacidad(), u.getEstado().getEtiqueta()});
+        }
+    }
+
+    /** conColumnaModificar: la tabla del admin tiene una sexta columna "Modificar Ruta". */
+    private void llenarTablaRutas(DefaultTableModel modelo, boolean conColumnaModificar) {
+        modelo.setRowCount(0);
+        for (Ruta ruta : servicioItinerarios.listarRutas()) {
+            List<UnidadTransporte> asignadas = servicioItinerarios.unidadesDeRuta(ruta.getNombre());
+            String placas;
+            if (asignadas.isEmpty()) {
+                placas = "Sin unidades";
+            } else {
+                List<String> lista = new ArrayList<>();
+                for (UnidadTransporte unidad : asignadas) {
+                    lista.add(unidad.getPlaca());
+                }
+                placas = String.join(", ", lista) + " (Cupos: " + servicioItinerarios.cuposDeRuta(ruta.getNombre()) + ")";
+            }
+            Object[] fila = {ruta.getNombre(), ruta.getTipo().getEtiqueta(),
+                    ruta.getInicioJornada().format(HORA), ruta.getFinJornada().format(HORA), placas};
+            if (conColumnaModificar) {
+                fila = new Object[] {fila[0], fila[1], fila[2], fila[3], fila[4], "Use el panel inferior"};
+            }
+            modelo.addRow(fila);
+        }
     }
 
     private boolean accesoAdmin(VistaConcreta vista) {
@@ -136,8 +301,8 @@ public class Control {
         return acceso.isOk();
     }
 
-    /** Envuelve un cuerpo con una barra superior "Volver al menú" sin tocar el código de las vistas. */
-    private JPanel conBotonVolver(JPanel cuerpo, Runnable accionVolver) {
+    /** Envuelve un cuerpo con una barra superior "Volver al menú" (y un panel inferior opcional) sin tocar el código de las vistas. */
+    private JPanel conBotonVolver(JPanel cuerpo, JPanel inferior, Runnable accionVolver) {
         JButton volver = new JButton("Volver al menú");
         volver.addActionListener(e -> accionVolver.run());
         JPanel barra = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -147,6 +312,9 @@ public class Control {
         contenedor.setBackground(Color.WHITE);
         contenedor.add(barra, BorderLayout.NORTH);
         contenedor.add(cuerpo, BorderLayout.CENTER);
+        if (inferior != null) {
+            contenedor.add(inferior, BorderLayout.SOUTH);
+        }
         return contenedor;
     }
 
