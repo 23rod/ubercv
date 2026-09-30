@@ -35,4 +35,9 @@ public class VistaConcreta extends JFrame { //clase base que se usara para grafi
         revalidate();
         repaint();
     }
+
+    // --- ACCESO PARA EL CONTROLADOR (conectar el boton Cerrar Sesion) ---
+    public EncabezadoGeneral getEncabezadoGeneral(){
+        return encabezadoGeneral;
+    }
 }
