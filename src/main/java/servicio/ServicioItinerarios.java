@@ -142,6 +142,9 @@ public class ServicioItinerarios {
         if (!Validador.esTextoNoVacio(nombre) || !Validador.esTextoNoVacio(inicio) || !Validador.esTextoNoVacio(fin)) {
             return Resultado.error(Mensajes.CAMPOS_OBLIGATORIOS);
         }
+        if (!Validador.cabe(nombre, Validador.MAX_NOMBRE_RUTA)) {
+            return Resultado.error(Mensajes.NOMBRE_RUTA_LARGO);
+        }
         if (tipo == null) {
             return Resultado.error(Mensajes.TIPO_RUTA_REQUERIDO);
         }

@@ -2,9 +2,13 @@ package persistencia;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import modelo.Mensajes;
 import modelo.Rol;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import persistencia.memoria.DatosSemilla;
 import persistencia.memoria.RepositorioUsuarios;
 import servicio.ServicioUsuarios;
@@ -50,5 +54,32 @@ class DatosSemillaTest {
         assertEquals(2, rutas.listar().size());
         assertEquals("UCV - Altamira", unidades.buscarPorPlaca("ABC123").getNombreRuta());
         assertEquals(modelo.EstadoUnidad.EN_MANTENIMIENTO, unidades.buscarPorPlaca("GHI789").getEstado());
+    }
+
+    @Test
+    void elPadronLocalAgregaPersonasSinTocarElCodigo(@TempDir Path carpeta) throws Exception {
+        Path archivo = carpeta.resolve("padron-local.csv");
+        String contenido = "\uFEFF70000001,Estudiante\n"           // con marca BOM, como lo guarda el Bloc de notas
+                + "70000002;Admin de Transporte\r\n"               // punto y coma, como lo guarda Excel en español
+                + "70000003 , conductor\n"
+                + "# esto es un comentario\n"
+                + "\n"
+                + "abc,ESTUDIANTE\n"                                // cédula inválida: se ignora
+                + "70000004,PILOTO\n"                               // rol desconocido: se ignora
+                + "70000005\n";                                     // sin rol: se ignora
+        Files.writeString(archivo, contenido, StandardCharsets.UTF_8);
+
+        assertEquals(3, DatosSemilla.cargarPadronLocal(archivo));
+        assertEquals(Rol.ESTUDIANTE, DatosSemilla.validarEnPadron("70000001"));
+        assertEquals(Rol.ADMIN_TRANSPORTE, DatosSemilla.validarEnPadron("70000002"));
+        assertEquals(Rol.CONDUCTOR, DatosSemilla.validarEnPadron("70000003"));
+        assertEquals(Rol.NINGUNO, DatosSemilla.validarEnPadron("70000004"));
+        assertEquals(Rol.NINGUNO, DatosSemilla.validarEnPadron("70000005"));
+    }
+
+    @Test
+    void sinArchivoDePadronLocalNoPasaNada() {
+        assertEquals(0, DatosSemilla.cargarPadronLocal(Path.of("no-existe-padron.csv")));
+        assertEquals(0, DatosSemilla.cargarPadronLocal(null));
     }
 }

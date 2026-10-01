@@ -71,7 +71,7 @@ class ServicioFlotaTest {
 
     @Test
     void laCapacidadDebeSerUnNumeroNaturalMayorQueCero() {
-        for (String invalida : new String[] {"0", "-5", "abc", "12.5"}) {
+        for (String invalida : new String[] {"0", "-5", "abc", "12.5", "121", "11111"}) {
             Resultado<Void> r = flota.registrarUnidad("ABC123", "Yutong", invalida, EstadoUnidad.ACTIVO);
             assertEquals(Mensajes.CAPACIDAD_INVALIDA, r.getMensaje(), "capacidad: " + invalida);
         }
@@ -114,5 +114,22 @@ class ServicioFlotaTest {
     void cambiarElEstadoDeUnaUnidadInexistenteFalla() {
         Resultado<Void> r = flota.cambiarEstado("ZZZ999", EstadoUnidad.ACTIVO);
         assertEquals(Mensajes.UNIDAD_NO_ENCONTRADA, r.getMensaje());
+    }
+
+    @Test
+    void laCapacidadAdmiteDesdeUnoHastaCientoVeinte() {
+        assertTrue(flota.registrarUnidad("AAA111", "Minibus", "10", EstadoUnidad.ACTIVO).isOk());
+        assertTrue(flota.registrarUnidad("BBB222", "Articulado", "120", EstadoUnidad.ACTIVO).isOk());
+        assertEquals(Mensajes.CAPACIDAD_INVALIDA, flota.registrarUnidad("CCC333", "Gigante", "121", EstadoUnidad.ACTIVO).getMensaje());
+    }
+
+    @Test
+    void elModeloNoPuedePasarDeCuarentaCaracteres() {
+        String justo = "M".repeat(40);
+        String largo = "M".repeat(41);
+        assertTrue(flota.registrarUnidad("AAA111", justo, "40", EstadoUnidad.ACTIVO).isOk());
+        Resultado<Void> r = flota.registrarUnidad("BBB222", largo, "40", EstadoUnidad.ACTIVO);
+        assertEquals(Mensajes.MODELO_LARGO, r.getMensaje());
+        assertNull(repositorio.buscarPorPlaca("BBB222"));
     }
 }

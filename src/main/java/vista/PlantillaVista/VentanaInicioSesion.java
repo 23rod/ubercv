@@ -77,8 +77,8 @@ public class VentanaInicioSesion extends JFrame {
         etiquetaTituloCentral.setOpaque(false);
 
         //Crear una etiqueta para el usuario
-        JLabel etiquetaUsuario = new JLabel("Usuario:");
-        etiquetaUsuario.setBounds(130, 160, 100, 20);
+        JLabel etiquetaUsuario = new JLabel("Correo electrónico:");
+        etiquetaUsuario.setBounds(130, 160, 200, 20);
 
         //Crear una etiqueta para la contraseña
         JLabel etiquetaContrasena = new JLabel("Contraseña:");
@@ -101,7 +101,6 @@ public class VentanaInicioSesion extends JFrame {
         //Crear campos de texto para el correo
         nombreUsuarioField = new JTextField();
         nombreUsuarioField.setBounds(130, 180, 230, 30);
-        nombreUsuarioField.setText("correo123@gmail.com");        
 
         //Crear campo de texto para la contraseña
         contrasenaUsuarioField = new JPasswordField();

@@ -5,6 +5,11 @@ import java.util.regex.Pattern;
 
 public class Validador {
 
+    public static final int CAPACIDAD_MIN = 10;
+    public static final int CAPACIDAD_MAX = 120;
+    public static final int MAX_MODELO = 40;
+    public static final int MAX_NOMBRE_RUTA = 60;
+
     // Algo@algo.com, sin espacios y con una sola arroba (HU01: correo @____.com)
     private static final Pattern CORREO =
             Pattern.compile("^[^@\\s]+@[^@\\s]+\\.com$", Pattern.CASE_INSENSITIVE);
@@ -14,7 +19,7 @@ public class Validador {
     private static final Pattern HORA = Pattern.compile("^([01]?\\d|2[0-3]):[0-5]\\d$");
 
     public static boolean esCedulaValida(String cedula) {
-        return cedula != null && cedula.matches("\\d{8}");
+        return cedula != null && cedula.matches("\\d{5,10}");
     }
 
     public static boolean esCorreoValido(String correo) {
@@ -33,13 +38,22 @@ public class Validador {
         return placa != null && PLACA.matcher(placa.trim()).matches();
     }
 
-    /** Número natural (entero mayor que cero) de hasta 4 dígitos. */
+    /** Número entero entre 1 y CAPACIDAD_MAX (120). */
     public static boolean esCapacidadValida(String capacidad) {
         if (capacidad == null) {
             return false;
         }
         String texto = capacidad.trim();
-        return texto.matches("\\d{1,4}") && Integer.parseInt(texto) > 0;
+        if (!texto.matches("\\d{1,3}")) {
+            return false;
+        }
+        int valor = Integer.parseInt(texto);
+        return valor >= CAPACIDAD_MIN && valor <= CAPACIDAD_MAX;
+    }
+
+    /** true si el texto (sin espacios en los extremos) no supera el largo máximo. */
+    public static boolean cabe(String texto, int maximo) {
+        return texto != null && texto.trim().length() <= maximo;
     }
 
     /** Convierte "H:mm" o "HH:mm" a LocalTime. Devuelve null si el formato no es válido. */

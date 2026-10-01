@@ -25,11 +25,14 @@ class ValidadorTest {
     }
 
     @Test
-    void cedulaDebeTenerOchoDigitos() {
+    void cedulaDebeTenerDeCincoADiezDigitos() {
+        assertTrue(Validador.esCedulaValida("12345"));      // mínimo: 5 dígitos
         assertTrue(Validador.esCedulaValida("12345678"));
-        assertFalse(Validador.esCedulaValida("1234567"));
-        assertFalse(Validador.esCedulaValida("123456789"));
+        assertTrue(Validador.esCedulaValida("1234567890")); // máximo: 10 dígitos
+        assertFalse(Validador.esCedulaValida("1234"));
+        assertFalse(Validador.esCedulaValida("12345678901"));
         assertFalse(Validador.esCedulaValida("1234567a"));
+        assertFalse(Validador.esCedulaValida("V-12345678"));
         assertFalse(Validador.esCedulaValida(null));
     }
 
@@ -53,8 +56,12 @@ class ValidadorTest {
     @Test
     void capacidadEsUnEnteroMayorQueCero() {
         assertTrue(Validador.esCapacidadValida("40"));
-        assertTrue(Validador.esCapacidadValida(" 1 "));
+        assertTrue(Validador.esCapacidadValida(" 10 "));
+        assertTrue(Validador.esCapacidadValida("120"));
+        assertFalse(Validador.esCapacidadValida("9"));
         assertFalse(Validador.esCapacidadValida("0"));
+        assertFalse(Validador.esCapacidadValida("121"));
+        assertFalse(Validador.esCapacidadValida("11111"));
         assertFalse(Validador.esCapacidadValida("-3"));
         assertFalse(Validador.esCapacidadValida("4.5"));
         assertFalse(Validador.esCapacidadValida("abc"));
@@ -71,5 +78,13 @@ class ValidadorTest {
         assertNull(Validador.parsearHora("12:60"));
         assertNull(Validador.parsearHora("abc"));
         assertNull(Validador.parsearHora(null));
+    }
+
+    @Test
+    void textoConLimiteDeLongitud() {
+        assertTrue(Validador.cabe("a".repeat(40), 40));
+        assertTrue(Validador.cabe("  " + "a".repeat(40) + "  ", 40)); // los espacios de los extremos no cuentan
+        assertFalse(Validador.cabe("a".repeat(41), 40));
+        assertFalse(Validador.cabe(null, 40));
     }
 }

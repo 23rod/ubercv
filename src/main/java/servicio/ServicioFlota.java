@@ -33,6 +33,9 @@ public class ServicioFlota {
         if (!Validador.esPlacaValida(placa)) {
             return Resultado.error(Mensajes.PLACA_INVALIDA);
         }
+        if (!Validador.cabe(modelo, Validador.MAX_MODELO)) {
+            return Resultado.error(Mensajes.MODELO_LARGO);
+        }
         if (!Validador.esCapacidadValida(capacidad)) {
             return Resultado.error(Mensajes.CAPACIDAD_INVALIDA);
         }
@@ -60,11 +63,13 @@ public class ServicioFlota {
         if (nuevoEstado == null) {
             return Resultado.error(Mensajes.ESTADO_REQUERIDO);
         }
+        boolean teniaRuta = unidad.estaAsignada();
         unidad.setEstado(nuevoEstado);
         if (nuevoEstado != EstadoUnidad.ACTIVO) {
             unidad.setNombreRuta(null);
         }
-        return Resultado.exito(null, Mensajes.ESTADO_ACTUALIZADO);
+        boolean liberada = teniaRuta && nuevoEstado != EstadoUnidad.ACTIVO;
+        return Resultado.exito(null, liberada ? Mensajes.ESTADO_ACTUALIZADO_LIBERADA : Mensajes.ESTADO_ACTUALIZADO);
     }
 
     public List<UnidadTransporte> listarUnidades() {

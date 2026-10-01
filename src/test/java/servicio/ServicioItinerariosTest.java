@@ -206,7 +206,8 @@ class ServicioItinerariosTest {
         crearRuta("Ruta A");
         unidad("ABC123", 40);
         itinerarios.asignarUnidad("ABC123", "Ruta A", false);
-        flota.cambiarEstado("ABC123", EstadoUnidad.FUERA_DE_SERVICIO);
+        Resultado<Void> r = flota.cambiarEstado("ABC123", EstadoUnidad.FUERA_DE_SERVICIO);
+        assertEquals(Mensajes.ESTADO_ACTUALIZADO_LIBERADA, r.getMensaje()); // avisa que la unidad se liberó
         assertEquals(0, itinerarios.cuposDeRuta("Ruta A"));
         assertTrue(itinerarios.unidadesDeRuta("Ruta A").isEmpty());
     }
@@ -226,5 +227,14 @@ class ServicioItinerariosTest {
         usuarios.iniciarSesion("empleado@ucv.com", DatosSemilla.CLAVE_DEMO);
         assertEquals(Mensajes.ACCESO_DENEGADO, itinerarios.asignarUnidad("ABC123", "Ruta A", false).getMensaje());
         assertEquals(0, itinerarios.cuposDeRuta("Ruta A"));
+    }
+
+    @Test
+    void elNombreDeLaRutaNoPuedePasarDeSesentaCaracteres() {
+        String justo = "R".repeat(60);
+        String largo = "R".repeat(61);
+        assertTrue(itinerarios.crearRuta(justo, TipoRuta.URBANA, "06:00", "20:00").isOk());
+        assertEquals(Mensajes.NOMBRE_RUTA_LARGO, itinerarios.crearRuta(largo, TipoRuta.URBANA, "06:00", "20:00").getMensaje());
+        assertEquals(Mensajes.NOMBRE_RUTA_LARGO, itinerarios.redefinirRuta(justo, largo, TipoRuta.URBANA, "06:00", "20:00").getMensaje());
     }
 }

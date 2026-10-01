@@ -45,22 +45,26 @@ class ServicioUsuariosTest {
     void registroConCorreoInvalidoEsRechazado() {
         Resultado<Void> r = servicio.registrar("ana@ucv", "Clave1234", "Clave1234", "10000001", Rol.ESTUDIANTE);
         assertFalse(r.isOk());
-        assertEquals(Mensajes.DATOS_INVALIDOS, r.getMensaje());
+        assertTrue(r.getMensaje().startsWith(Mensajes.DATOS_INVALIDOS));
+        assertTrue(r.getMensaje().contains(Mensajes.DETALLE_CORREO));
     }
 
     @Test
     void registroConCedulaInvalidaEsRechazado() {
-        Resultado<Void> corta = servicio.registrar("ana@ucv.com", "Clave1234", "Clave1234", "1234567", Rol.ESTUDIANTE);
+        Resultado<Void> corta = servicio.registrar("ana@ucv.com", "Clave1234", "Clave1234", "1234", Rol.ESTUDIANTE);
         Resultado<Void> letras = servicio.registrar("ana@ucv.com", "Clave1234", "Clave1234", "1000000A", Rol.ESTUDIANTE);
-        assertEquals(Mensajes.DATOS_INVALIDOS, corta.getMensaje());
-        assertEquals(Mensajes.DATOS_INVALIDOS, letras.getMensaje());
+        assertTrue(corta.getMensaje().startsWith(Mensajes.DATOS_INVALIDOS));
+        assertTrue(corta.getMensaje().contains(Mensajes.DETALLE_CEDULA));
+        assertTrue(letras.getMensaje().startsWith(Mensajes.DATOS_INVALIDOS));
+        assertTrue(letras.getMensaje().contains(Mensajes.DETALLE_CEDULA));
     }
 
     @Test
     void registroConClaveCortaEsRechazado() {
         Resultado<Void> r = servicio.registrar("ana@ucv.com", "corta", "corta", "10000001", Rol.ESTUDIANTE);
         assertFalse(r.isOk());
-        assertEquals(Mensajes.DATOS_INVALIDOS, r.getMensaje());
+        assertTrue(r.getMensaje().startsWith(Mensajes.DATOS_INVALIDOS));
+        assertTrue(r.getMensaje().contains(Mensajes.DETALLE_CLAVE));
     }
 
     @Test
@@ -181,5 +185,30 @@ class ServicioUsuariosTest {
         servicio.iniciarSesion("ana@ucv.com", "Clave1234");
         assertFalse(servicio.exigirRol(Rol.ADMIN_TRANSPORTE).isOk());
         assertTrue(servicio.exigirRol(Rol.ESTUDIANTE).isOk());
+    }
+
+    @Test
+    void elMensajeDeDatosInvalidosListaTodosLosCamposQueFallan() {
+        // Cédula con prefijo "V-", correo que no termina en .com y clave corta
+        Resultado<Void> r = servicio.registrar("juan@ucv.edu.ve", "123", "123", "V-12345678", Rol.ESTUDIANTE);
+        assertTrue(r.getMensaje().startsWith(Mensajes.DATOS_INVALIDOS));
+        assertTrue(r.getMensaje().contains(Mensajes.DETALLE_CEDULA));
+        assertTrue(r.getMensaje().contains(Mensajes.DETALLE_CORREO));
+        assertTrue(r.getMensaje().contains(Mensajes.DETALLE_CLAVE));
+    }
+
+    @Test
+    void unaCedulaDeCincoDigitosTieneFormatoValido() {
+        // Formato válido (5 dígitos) pero fuera del padrón: falla por el rol, no por "Datos no válidos"
+        Resultado<Void> r = servicio.registrar("ana@ucv.com", "Clave1234", "Clave1234", "12345", Rol.ESTUDIANTE);
+        assertEquals(Mensajes.ROL_NO_COINCIDE, r.getMensaje());
+    }
+
+    @Test
+    void elMensajeSoloMencionaLosCamposInvalidos() {
+        Resultado<Void> r = servicio.registrar("ana@ucv", "Clave1234", "Clave1234", "10000001", Rol.ESTUDIANTE);
+        assertTrue(r.getMensaje().contains(Mensajes.DETALLE_CORREO));
+        assertFalse(r.getMensaje().contains(Mensajes.DETALLE_CEDULA));
+        assertFalse(r.getMensaje().contains(Mensajes.DETALLE_CLAVE));
     }
 }
