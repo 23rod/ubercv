@@ -49,7 +49,7 @@ public class CuerpoRegistro extends JPanel {
         
         // Creacion del placeholder roles
         JLabel rolesLabel = new JLabel("Defina su rol:");
-        String[] roles = {"Ninguno", "Estudiante", "Empleado", "Conductor"};
+        String[] roles = {"Ninguno", "Estudiante", "Empleado", "Conductor", "Admin de Transporte"};
         plegableRoles = new JComboBox<>(roles);
         JPanel panelPlegableRoles = CrearSubPanel.subPanel();
         panelPlegableRoles.add(rolesLabel);
