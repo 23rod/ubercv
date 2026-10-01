@@ -232,9 +232,6 @@ public class MenuInicio extends JFrame {
 
 
 
-    public static void main(String[] args) {
-        MenuInicio menuInicio = new MenuInicio(new Control());
-        menuInicio.setVisible(true);
-    }
+    
     
 }
