@@ -1,5 +1,7 @@
 package servicio;
 
+import java.util.ArrayList;
+import java.util.List;
 import modelo.Mensajes;
 import modelo.Resultado;
 import modelo.Rol;
@@ -28,10 +30,19 @@ public class ServicioUsuarios {
         String cedulaNorm = (cedula == null) ? null : cedula.trim();
 
         // 1) Formato de los datos (HU01 escenario 3)
-        if (!Validador.esCorreoValido(correoNorm)
-                || !Validador.esCedulaValida(cedulaNorm)
-                || !Validador.esClaveValida(clave)) {
-            return Resultado.error(Mensajes.DATOS_INVALIDOS);
+        // Se indica qué campos fallan, en el orden del formulario (cédula, correo, contraseña)
+        List<String> problemas = new ArrayList<>();
+        if (!Validador.esCedulaValida(cedulaNorm)) {
+            problemas.add(Mensajes.DETALLE_CEDULA);
+        }
+        if (!Validador.esCorreoValido(correoNorm)) {
+            problemas.add(Mensajes.DETALLE_CORREO);
+        }
+        if (!Validador.esClaveValida(clave)) {
+            problemas.add(Mensajes.DETALLE_CLAVE);
+        }
+        if (!problemas.isEmpty()) {
+            return Resultado.error(Mensajes.DATOS_INVALIDOS + ":\n- " + String.join("\n- ", problemas));
         }
         // 2) El combo tiene la opción "Ninguno"
         if (rol == null || rol == Rol.NINGUNO) {

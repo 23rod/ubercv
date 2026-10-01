@@ -27,6 +27,7 @@ import servicio.ServicioFlota;
 import servicio.ServicioItinerarios;
 import servicio.ServicioUsuarios;
 import vista.PlantillaVista.MenuInicio;
+import vista.PlantillaVista.PanelEstadoUnidad;
 import vista.PlantillaVista.PanelGestionRutas;
 import vista.PlantillaVista.VistaConcreta;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoFuncionesAdmin;
@@ -147,8 +148,9 @@ public class Control {
         menu.getBotonFlota().addActionListener(e -> {
             if (accesoAdmin(vista)) {
                 CuerpoRegistroUnidad cuerpo = new CuerpoRegistroUnidad();
-                conectarFlota(cuerpo);
-                vista.mostrarCuerpo(conBotonVolver(cuerpo, null, volverAlMenu));
+                PanelEstadoUnidad panel = new PanelEstadoUnidad();
+                conectarFlota(cuerpo, panel);
+                vista.mostrarCuerpo(conBotonVolver(cuerpo, panel, volverAlMenu));
             }
         });
         menu.getBotonItinerario().addActionListener(e -> {
@@ -162,8 +164,14 @@ public class Control {
     }
 
     // ------------------------------------------------------ HU09: Gestión de Flota
-    private void conectarFlota(CuerpoRegistroUnidad cuerpo) {
-        llenarTablaUnidades(cuerpo.getModeloTablaUnidades());
+    private void conectarFlota(CuerpoRegistroUnidad cuerpo, PanelEstadoUnidad panel) {
+        Runnable refrescar = () -> {
+            llenarTablaUnidades(cuerpo.getModeloTablaUnidades());
+            panel.actualizarUnidades(placasDeUnidades());
+        };
+        refrescar.run();
+
+        // HU09: registrar unidad
         cuerpo.getBotonConfirmar().addActionListener(e -> {
             Resultado<Void> r = servicioFlota.registrarUnidad(
                     cuerpo.getcampoPlaca().getText(),
@@ -175,7 +183,17 @@ public class Control {
                 cuerpo.getcampoPlaca().setText("");
                 cuerpo.getcampoModelo().setText("");
                 cuerpo.getcampoCapacidad().setText("");
-                llenarTablaUnidades(cuerpo.getModeloTablaUnidades());
+                refrescar.run();
+            }
+        });
+
+        // Gestión de flota: cambiar el estado operativo de una unidad registrada
+        panel.getBotonCambiarEstado().addActionListener(e -> {
+            Resultado<Void> r = servicioFlota.cambiarEstado(
+                    panel.getUnidadElegida(), EstadoUnidad.desdeTexto(panel.getEstadoElegido()));
+            JOptionPane.showMessageDialog(cuerpo, r.getMensaje());
+            if (r.isOk()) {
+                refrescar.run();
             }
         });
     }

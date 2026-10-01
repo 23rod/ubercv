@@ -5,6 +5,9 @@ public class Mensajes {
     // HU01 - Registro
     public static final String REGISTRO_EXITOSO = "Registro de usuario exitoso";
     public static final String DATOS_INVALIDOS = "Datos no válidos";
+    public static final String DETALLE_CEDULA = "La cédula debe tener de 5 a 10 dígitos (sin letras, puntos ni guiones)";
+    public static final String DETALLE_CORREO = "El correo debe tener el formato usuario@dominio.com";
+    public static final String DETALLE_CLAVE = "La contraseña debe tener al menos 8 caracteres";
     public static final String USUARIO_EXISTENTE = "Este usuario ya existe";
     public static final String ROL_NO_COINCIDE = "El rol para los datos de usuario ingresados no coincide con la base de datos";
     public static final String CLAVES_NO_COINCIDEN = "Las contraseñas no coinciden";
@@ -24,16 +27,19 @@ public class Mensajes {
     public static final String UNIDAD_GUARDADA = "Unidad guardada correctamente";
     public static final String UNIDAD_EXISTENTE = "Unidad ya existente";
     public static final String PLACA_INVALIDA = "Placa no válida (use de 5 a 8 letras o números)";
-    public static final String CAPACIDAD_INVALIDA = "La capacidad debe ser un número entero mayor que cero";
+    public static final String CAPACIDAD_INVALIDA = "La capacidad debe ser un número entero entre 1 y 120";
+    public static final String MODELO_LARGO = "El modelo no puede tener más de 40 caracteres";
     public static final String ESTADO_REQUERIDO = "Seleccione un estado";
     public static final String UNIDAD_NO_ENCONTRADA = "Unidad no encontrada";
     public static final String ESTADO_ACTUALIZADO = "Estado de la unidad actualizado";
+    public static final String ESTADO_ACTUALIZADO_LIBERADA = "Estado de la unidad actualizado. La unidad se liberó de su ruta (solo las unidades activas prestan servicio)";
 
     // HU10 - Definir rutas y horarios
     public static final String RUTA_GUARDADA = "Ruta guardada correctamente";
     public static final String RUTA_EXISTENTE = "Ruta ya existente";
     public static final String RUTA_REDEFINIDA = "Ruta redefinida";
     public static final String RUTA_NO_ENCONTRADA = "Ruta no encontrada";
+    public static final String NOMBRE_RUTA_LARGO = "El nombre de la ruta no puede tener más de 60 caracteres";
     public static final String TIPO_RUTA_REQUERIDO = "Seleccione un tipo de ruta";
     public static final String HORARIO_INVALIDO = "Horario no válido: use el formato HH:mm y que el inicio sea anterior al final";
 

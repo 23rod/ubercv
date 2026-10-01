@@ -1,5 +1,9 @@
 package persistencia.memoria;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +14,7 @@ import modelo.TipoRuta;
 import modelo.UnidadTransporte;
 import modelo.Usuario;
 import utilidades.seguridad.HashClave;
+import utilidades.validadores.Validador;
 
 /**
  * Datos de arranque del backend falso (todo en memoria, cédulas ficticias).
@@ -23,10 +28,14 @@ import utilidades.seguridad.HashClave;
  * CÉDULAS LIBRES PARA PROBAR EL REGISTRO (el rol elegido debe coincidir):
  *   10000001 y 10000002 -> Estudiante | 10000003 -> Empleado
  *   10000004 -> Conductor | 10000005 -> Admin de Transporte
+ *
+ * PERSONAS REALES (profesores, preparadores, el equipo): NO se escriben aquí. Se ponen en el archivo
+ * padron-local.csv, que está en .gitignore y por tanto nunca llega a GitHub (ver padron-local.ejemplo.csv).
  */
 public class DatosSemilla {
 
     public static final String CLAVE_DEMO = "Ucv12345";
+    public static final String ARCHIVO_PADRON_LOCAL = "padron-local.csv";
 
     // Padrón institucional simulado: cédula -> rol que le corresponde
     private static final Map<String, Rol> PADRON = new HashMap<>();
@@ -43,6 +52,51 @@ public class DatosSemilla {
         PADRON.put("20000001", Rol.ESTUDIANTE);
         PADRON.put("20000002", Rol.EMPLEADO);
         PADRON.put("20000003", Rol.CONDUCTOR);
+        // Personas reales que cada integrante guarda solo en su computador (si el archivo existe)
+        cargarPadronLocal(Path.of(ARCHIVO_PADRON_LOCAL));
+    }
+
+    /**
+     * Agrega al padrón las líneas "cédula,rol" de un archivo, si existe. Acepta coma o punto y coma
+     * (Excel en español guarda con ;), ignora líneas vacías, comentarios (#) y líneas mal formadas.
+     * El rol puede escribirse "Estudiante", "Empleado", "Conductor", "Admin de Transporte" o el nombre
+     * interno (ESTUDIANTE, ADMIN_TRANSPORTE...). Devuelve cuántas cédulas se cargaron.
+     */
+    public static int cargarPadronLocal(Path archivo) {
+        if (archivo == null || !Files.isRegularFile(archivo)) {
+            return 0;
+        }
+        int cargadas = 0;
+        try {
+            for (String linea : Files.readAllLines(archivo, StandardCharsets.UTF_8)) {
+                String limpia = linea.replace("\uFEFF", "").trim(); // el Bloc de notas puede agregar una marca (BOM)
+                if (limpia.isEmpty() || limpia.startsWith("#")) {
+                    continue;
+                }
+                String[] partes = limpia.split("[,;]");
+                if (partes.length < 2) {
+                    continue;
+                }
+                String cedula = partes[0].trim();
+                Rol rol = interpretarRol(partes[1]);
+                if (Validador.esCedulaValida(cedula) && rol != Rol.NINGUNO) {
+                    PADRON.put(cedula, rol);
+                    cargadas++;
+                }
+            }
+        } catch (IOException e) {
+            return cargadas; // un archivo ilegible no debe impedir que la app arranque
+        }
+        return cargadas;
+    }
+
+    private static Rol interpretarRol(String texto) {
+        String limpio = texto.trim();
+        try {
+            return Rol.valueOf(limpio.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Rol.desdeTexto(limpio);
+        }
     }
 
     /** Rol que el padrón le asigna a esa cédula, o NINGUNO si no está registrada. */
