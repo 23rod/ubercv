@@ -3,8 +3,6 @@ package vista.PlantillaVista;
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 
-import vista.PlantillaVista.CuerposDelSistema.*;
-
 public class VistaConcreta extends JFrame { //clase base que se usara para graficar todas las pagina del sistema
     
     private EncabezadoGeneral encabezadoGeneral;
