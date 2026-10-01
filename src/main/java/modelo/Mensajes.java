@@ -27,7 +27,7 @@ public class Mensajes {
     public static final String UNIDAD_GUARDADA = "Unidad guardada correctamente";
     public static final String UNIDAD_EXISTENTE = "Unidad ya existente";
     public static final String PLACA_INVALIDA = "Placa no válida (use de 5 a 8 letras o números)";
-    public static final String CAPACIDAD_INVALIDA = "La capacidad debe ser un número entero entre 1 y 120";
+    public static final String CAPACIDAD_INVALIDA = "La capacidad debe ser un número entero entre 10 y 120";
     public static final String MODELO_LARGO = "El modelo no puede tener más de 40 caracteres";
     public static final String ESTADO_REQUERIDO = "Seleccione un estado";
     public static final String UNIDAD_NO_ENCONTRADA = "Unidad no encontrada";

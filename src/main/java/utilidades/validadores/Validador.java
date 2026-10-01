@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 
 public class Validador {
 
+    public static final int CAPACIDAD_MIN = 10;
     public static final int CAPACIDAD_MAX = 120;
     public static final int MAX_MODELO = 40;
     public static final int MAX_NOMBRE_RUTA = 60;
@@ -47,7 +48,7 @@ public class Validador {
             return false;
         }
         int valor = Integer.parseInt(texto);
-        return valor >= 1 && valor <= CAPACIDAD_MAX;
+        return valor >= CAPACIDAD_MIN && valor <= CAPACIDAD_MAX;
     }
 
     /** true si el texto (sin espacios en los extremos) no supera el largo máximo. */

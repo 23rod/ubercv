@@ -56,8 +56,9 @@ class ValidadorTest {
     @Test
     void capacidadEsUnEnteroMayorQueCero() {
         assertTrue(Validador.esCapacidadValida("40"));
-        assertTrue(Validador.esCapacidadValida(" 1 "));
+        assertTrue(Validador.esCapacidadValida(" 10 "));
         assertTrue(Validador.esCapacidadValida("120"));
+        assertFalse(Validador.esCapacidadValida("9"));
         assertFalse(Validador.esCapacidadValida("0"));
         assertFalse(Validador.esCapacidadValida("121"));
         assertFalse(Validador.esCapacidadValida("11111"));

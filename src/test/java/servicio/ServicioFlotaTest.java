@@ -118,7 +118,7 @@ class ServicioFlotaTest {
 
     @Test
     void laCapacidadAdmiteDesdeUnoHastaCientoVeinte() {
-        assertTrue(flota.registrarUnidad("AAA111", "Minibus", "1", EstadoUnidad.ACTIVO).isOk());
+        assertTrue(flota.registrarUnidad("AAA111", "Minibus", "10", EstadoUnidad.ACTIVO).isOk());
         assertTrue(flota.registrarUnidad("BBB222", "Articulado", "120", EstadoUnidad.ACTIVO).isOk());
         assertEquals(Mensajes.CAPACIDAD_INVALIDA, flota.registrarUnidad("CCC333", "Gigante", "121", EstadoUnidad.ACTIVO).getMensaje());
     }
