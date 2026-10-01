@@ -30,6 +30,8 @@ public class CuerpoFuncionesUsuario extends JPanel {
         };
         tablaRutas = new JTable(filasTablaRutas);
         tablaRutas.setRowHeight(30);
+        tablaRutas.getTableHeader().setReorderingAllowed(false);
+        tablaRutas.getTableHeader().setResizingAllowed(false);
         
         JScrollPane tablaConScrollRutas = new JScrollPane(tablaRutas); //Metodo para garantizar la graficacion y visualizacion de una tabla de N filas
         tablaConScrollRutas.setPreferredSize(new DimensionUIResource(800, 150));
@@ -47,6 +49,8 @@ public class CuerpoFuncionesUsuario extends JPanel {
         };
         tablaReservas = new JTable(filasTablaReservas);
         tablaReservas.setRowHeight(30);
+        tablaReservas.getTableHeader().setReorderingAllowed(false);
+        tablaReservas.getTableHeader().setResizingAllowed(false);
         
         JScrollPane tablaConScrollReservas = new JScrollPane(tablaReservas); //Metodo para garantizar la graficacion y visualizacion de una tabla de N filas
         tablaConScrollReservas.setPreferredSize(new DimensionUIResource(800, 150));

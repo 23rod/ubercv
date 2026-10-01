@@ -66,6 +66,8 @@ public class CuerpoRegistroUnidad extends JPanel {
         };
         tablaUnidades = new JTable(filasTablaUnidades);
         tablaUnidades.setRowHeight(30);
+        tablaUnidades.getTableHeader().setReorderingAllowed(false);
+        tablaUnidades.getTableHeader().setResizingAllowed(false);
         
         JScrollPane tablaConScroll = new JScrollPane(tablaUnidades); //Metodo para garantizar la graficacion y visualizacion de una tabla de N filas
         tablaConScroll.setPreferredSize(new DimensionUIResource(800, 150));

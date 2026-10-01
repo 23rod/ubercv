@@ -67,6 +67,8 @@ public class CuerpoRegistroRuta extends JPanel {
         };
         tablaRutas = new JTable(filasTablaRutas);
         tablaRutas.setRowHeight(30);
+        tablaRutas.getTableHeader().setReorderingAllowed(false);
+        tablaRutas.getTableHeader().setResizingAllowed(false);
         
         JScrollPane tablaConScroll = new JScrollPane(tablaRutas); //Metodo para garantizar la graficacion y visualizacion de una tabla de N filas
         tablaConScroll.setPreferredSize(new DimensionUIResource(920, 150));
