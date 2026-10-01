@@ -20,10 +20,12 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.Color;
 import java.awt.Dimension;
+import javax.swing.text.DefaultCaret;
 
 //Barra de desplazamiento hacia abajo 
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+
 
 import controlador.Control;
 
@@ -59,14 +61,14 @@ public class MenuInicio extends JFrame {
 
         // Definir explícitamente el ancho y el alto total del panel
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        panel.setPreferredSize(new Dimension(screenSize.width, 1800));
-
+        panel.setPreferredSize(new Dimension(screenSize.width, 1800));        
         //Agregamos la barra de desplazamiento
         JScrollPane scrollPane = new JScrollPane(panel);
 
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
+        
         add(scrollPane);
     }
 
@@ -123,8 +125,9 @@ public class MenuInicio extends JFrame {
         subtituloBeneficios.setBounds(120, 1150, 700, 30);
         subtituloBeneficios.setText("Estudiantes, profesores y todo el personal gozan de transporte a su localidad ida y vuelta.");
         subtituloBeneficios.setFont(new Font("Times New Roman", Font.PLAIN, 14));
-
+        
         JTextArea beneficios1 = new JTextArea();
+        ((DefaultCaret) beneficios1.getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
         beneficios1.setBounds(200, 1300, 200, 150);
         beneficios1.setText("Reserva Tu Viaje:\n\n"+
             "Con el nuevo sistema de gestión\n"+
@@ -134,8 +137,10 @@ public class MenuInicio extends JFrame {
             beneficios1.setFont(new Font("Arial", Font.PLAIN, 12));
             beneficios1.setBackground(Color.WHITE);
             beneficios1.setEditable(false);
+        
 
         JTextArea beneficios2 = new JTextArea();
+        ((DefaultCaret) beneficios2.getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
         beneficios2.setBounds(550, 1300, 220, 150);
         beneficios2.setText("Rutas Por Toda La Gran Caracas:\n\n"+
             "Paradas de autobús distribuidas para\n"+
@@ -145,8 +150,10 @@ public class MenuInicio extends JFrame {
         beneficios2.setFont(new Font("Arial", Font.PLAIN, 12));
         beneficios2.setEditable(false);
         beneficios2.setBackground(Color.WHITE);
+        
 
         JTextArea beneficios3 = new JTextArea();
+        ((DefaultCaret) beneficios3.getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
         beneficios3.setBounds(950, 1300, 220, 150);
         beneficios3.setText("Visualiza el Estado de tu Viaje:\n\n"+
             "Aprovecha al máximo la función de\n"+
@@ -155,6 +162,7 @@ public class MenuInicio extends JFrame {
         beneficios3.setFont(new Font("Arial", Font.PLAIN, 12));
         beneficios3.setEditable(false);
         beneficios3.setBackground(Color.WHITE);
+        
 
         panel.add(etiquetaLogo);
         panel.add(etiquetaTitulo);
@@ -209,7 +217,7 @@ public class MenuInicio extends JFrame {
 
     private void agregarBotones(JPanel panel) {
         // Implementación de botones
-        JButton botonIniciarSesion = new JButton("Iniciar Sesión");
+        JButton botonIniciarSesion = new JButton("Accede ahora");
         botonIniciarSesion.setBounds(1100, 30, 150, 30);
         botonIniciarSesion.setBackground(Color.BLUE);
         botonIniciarSesion.setForeground(Color.WHITE);

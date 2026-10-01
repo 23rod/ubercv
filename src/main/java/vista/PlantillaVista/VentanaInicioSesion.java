@@ -32,7 +32,7 @@ public class VentanaInicioSesion extends JFrame {
         setResizable(false); //No se puede maximizar la ventana
 
         //Para que finalice la aplicacion al cerrar la ventana
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         //Establecemos el tamaño de la ventana
         setSize(500, 500);
@@ -175,12 +175,7 @@ public class VentanaInicioSesion extends JFrame {
         });
     }   
     
-    //Prueba de la ventana de inicio de sesión
-    public static void main(String[] args) {
-        Control control = new Control();
-        VentanaInicioSesion ventana = new VentanaInicioSesion(control);
-        ventana.setVisible(true);        
-    }
+    
 
 
 

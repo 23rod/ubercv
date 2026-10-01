@@ -96,7 +96,8 @@ public class Control {
                     Rol.desdeTexto(cuerpo.getRolSeleccionado()));
             JOptionPane.showMessageDialog(vista, r.getMensaje());
             if (r.isOk()) {
-                abrirMenuInicio();
+                iniciarSesion(cuerpo.getCampoCorreo().getText(), new String(cuerpo.getCampoContrasenia().getPassword()));
+                abrirVentanaPrincipal();
             }
         });
         mostrar(vista);
