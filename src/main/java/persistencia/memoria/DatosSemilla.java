@@ -46,6 +46,7 @@ public class DatosSemilla {
         PADRON.put("10000002", Rol.ESTUDIANTE);
         PADRON.put("10000003", Rol.EMPLEADO);
         PADRON.put("10000004", Rol.CONDUCTOR);
+        PADRON.put("20000004", Rol.CONDUCTOR);
         PADRON.put("10000005", Rol.ADMIN_TRANSPORTE);
         // De las cuentas de demo
         PADRON.put("12345678", Rol.ADMIN_TRANSPORTE);
@@ -110,11 +111,12 @@ public class DatosSemilla {
         crear(repositorio, "estudiante@ucv.com", "20000001", Rol.ESTUDIANTE);
         crear(repositorio, "empleado@ucv.com", "20000002", Rol.EMPLEADO);
         crear(repositorio, "conductor@ucv.com", "20000003", Rol.CONDUCTOR);
+        crear(repositorio, "conductor2@ucv.com", "20000004", Rol.CONDUCTOR);
     }
 
     /**
      * Flota y rutas de demo: 3 unidades (una en mantenimiento) y 2 rutas.
-     * La unidad ABC123 arranca asignada a "UCV - Altamira".
+     * La unidad ABC123 arranca asignada a "UCV - Altamira" y al conductor 20000003.
      */
     public static void sembrarFlota(RepositorioUnidades unidades, RepositorioRutas rutas) {
         rutas.guardar(new Ruta("UCV - Altamira", TipoRuta.URBANA, LocalTime.of(6, 0), LocalTime.of(20, 0)));
@@ -122,6 +124,7 @@ public class DatosSemilla {
 
         UnidadTransporte primera = new UnidadTransporte("ABC123", "Yutong ZK6", 40, EstadoUnidad.ACTIVO);
         primera.setNombreRuta("UCV - Altamira");
+        primera.setCedulaConductor("20000003");
         unidades.guardar(primera);
         unidades.guardar(new UnidadTransporte("DEF456", "Encava E-NT610", 35, EstadoUnidad.ACTIVO));
         unidades.guardar(new UnidadTransporte("GHI789", "Mercedes Benz O500", 45, EstadoUnidad.EN_MANTENIMIENTO));

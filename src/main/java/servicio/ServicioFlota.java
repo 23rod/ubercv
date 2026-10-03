@@ -50,7 +50,7 @@ public class ServicioFlota {
         return Resultado.exito(null, Mensajes.UNIDAD_GUARDADA); // HU09 escenario 1
     }
 
-    /** Si la unidad deja de estar ACTIVA, se libera de su ruta: solo las unidades activas prestan servicio. */
+    /** Si la unidad deja de estar ACTIVA, se libera de su ruta y de su conductor. */
     public Resultado<Void> cambiarEstado(String placa, EstadoUnidad nuevoEstado) {
         Resultado<Void> acceso = usuarios.exigirRol(Rol.ADMIN_TRANSPORTE);
         if (!acceso.isOk()) {
@@ -67,6 +67,7 @@ public class ServicioFlota {
         unidad.setEstado(nuevoEstado);
         if (nuevoEstado != EstadoUnidad.ACTIVO) {
             unidad.setNombreRuta(null);
+            unidad.setCedulaConductor(null);
         }
         boolean liberada = teniaRuta && nuevoEstado != EstadoUnidad.ACTIVO;
         return Resultado.exito(null, liberada ? Mensajes.ESTADO_ACTUALIZADO_LIBERADA : Mensajes.ESTADO_ACTUALIZADO);

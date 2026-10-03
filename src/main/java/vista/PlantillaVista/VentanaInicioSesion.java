@@ -130,7 +130,8 @@ public class VentanaInicioSesion extends JFrame {
 
         panel.add(botonIniciarSesion);
         panel.add(botonRegistro);            
-
+        
+        getRootPane().setDefaultButton(botonIniciarSesion);
     }
 
     //Lógica para abrir la ventana del menu de usuario al iniciar sesión

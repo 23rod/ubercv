@@ -10,6 +10,7 @@ import modelo.Rol;
 import modelo.Ruta;
 import modelo.TipoRuta;
 import modelo.UnidadTransporte;
+import modelo.Usuario;
 import persistencia.memoria.RepositorioRutas;
 import persistencia.memoria.RepositorioUnidades;
 import utilidades.validadores.Validador;
@@ -113,6 +114,74 @@ public class ServicioItinerarios {
         return Resultado.exito(null, Mensajes.UNIDAD_ASIGNADA);
     }
 
+    // ----------------------------------------------------- Conductores
+    /**
+     * Asigna un conductor a la unidad que actualmente presta servicio en una ruta.
+     * La relación del modelo es conductor -> unidad -> ruta.
+     */
+    public Resultado<Void> asignarConductor(String cedulaConductor, String placa, String nombreRuta) {
+        Resultado<Void> acceso = usuarios.exigirRol(Rol.ADMIN_TRANSPORTE);
+        if (!acceso.isOk()) {
+            return acceso;
+        }
+
+        Usuario conductor = usuarios.buscarPorCedula(cedulaConductor);
+        if (conductor == null) {
+            return Resultado.error(Mensajes.CONDUCTOR_NO_ENCONTRADO);
+        }
+
+        if (conductor.getRol() != Rol.CONDUCTOR) {
+            return Resultado.error(Mensajes.USUARIO_NO_ES_CONDUCTOR);
+        }
+
+        UnidadTransporte unidad = unidades.buscarPorPlaca(placa);
+        if (unidad == null) {
+            return Resultado.error(Mensajes.UNIDAD_NO_ENCONTRADA);
+        }
+
+        Ruta ruta = rutas.buscarPorNombre(nombreRuta);
+        if (ruta == null) {
+            return Resultado.error(Mensajes.RUTA_NO_ENCONTRADA);
+        }
+
+        if (!unidad.estaAsignada()) {
+            return Resultado.error(Mensajes.UNIDAD_SIN_RUTA);
+        }
+
+        if (!unidad.getNombreRuta().equalsIgnoreCase(ruta.getNombre())) {
+            return Resultado.error(Mensajes.UNIDAD_NO_PERTENECE_RUTA);
+        }
+
+        if (unidad.tieneConductor()
+                && unidad.getCedulaConductor().equals(conductor.getCedula())) {
+            return Resultado.error(Mensajes.CONDUCTOR_YA_ASIGNADO);
+        }
+        if (unidad.tieneConductor()
+                && unidad.getCedulaConductor().equals(conductor.getCedula())) {
+            return Resultado.error(Mensajes.CONDUCTOR_YA_ASIGNADO);
+        }
+        // Regla 1:1 -> Verificar que el conductor no esté asignado a otra unidad
+        for (UnidadTransporte otra : unidades.listar()) {
+            if (!otra.getPlaca().equalsIgnoreCase(unidad.getPlaca())
+                    && otra.tieneConductor()
+                    && otra.getCedulaConductor().equals(conductor.getCedula())) {
+                return Resultado.error(Mensajes.CONDUCTOR_OCUPADO);
+            }
+        }
+        boolean habiaConductor = unidad.tieneConductor();
+        unidad.setCedulaConductor(conductor.getCedula());
+
+        if (habiaConductor) {
+            return Resultado.exito(null, Mensajes.CONDUCTOR_REASIGNADO);
+        }
+
+        return Resultado.exito(null, Mensajes.CONDUCTOR_ASIGNADO);
+    }
+
+    public List<Usuario> listarConductores() {
+        return usuarios.listarPorRol(Rol.CONDUCTOR);
+    }
+
     // ------------------------------------------------------------ Consultas
     public List<Ruta> listarRutas() {
         return rutas.listar();
@@ -122,6 +191,19 @@ public class ServicioItinerarios {
         List<UnidadTransporte> resultado = new ArrayList<>();
         for (UnidadTransporte unidad : unidades.listar()) {
             if (unidad.estaAsignada() && unidad.getNombreRuta().equalsIgnoreCase(nombreRuta.trim())) {
+                resultado.add(unidad);
+            }
+        }
+        return resultado;
+    }
+
+    public List<UnidadTransporte> unidadesDeConductor(String cedulaConductor) {
+        List<UnidadTransporte> resultado = new ArrayList<>();
+        if (cedulaConductor == null) {
+            return resultado;
+        }
+        for (UnidadTransporte unidad : unidades.listar()) {
+            if (unidad.tieneConductor() && unidad.getCedulaConductor().equals(cedulaConductor.trim())) {
                 resultado.add(unidad);
             }
         }

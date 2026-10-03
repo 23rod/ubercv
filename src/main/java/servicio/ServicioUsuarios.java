@@ -103,6 +103,29 @@ public class ServicioUsuarios {
         return Resultado.exito(null, "");
     }
 
+    public Usuario buscarPorCedula(String cedula) {
+        if (cedula == null) {
+            return null;
+        }
+        return repositorio.buscarPorCedula(cedula.trim());
+    }
+
+    public List<Usuario> listarPorRol(Rol rol) {
+        List<Usuario> resultado = new ArrayList<>();
+
+        if (rol == null) {
+            return resultado;
+        }
+
+        for (Usuario usuario : repositorio.listar()) {
+            if (usuario.getRol() == rol) {
+                resultado.add(usuario);
+            }
+        }
+
+        return resultado;
+    }
+
     private static String normalizarCorreo(String correo) {
         return (correo == null) ? null : correo.trim().toLowerCase();
     }

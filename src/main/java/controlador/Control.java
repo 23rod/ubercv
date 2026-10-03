@@ -2,12 +2,14 @@ package controlador;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Window;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JLabel;
 import javax.swing.JButton;
+import javax.swing.SwingConstants;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -19,6 +21,7 @@ import modelo.Rol;
 import modelo.Ruta;
 import modelo.TipoRuta;
 import modelo.UnidadTransporte;
+import modelo.Usuario;
 import persistencia.memoria.DatosSemilla;
 import persistencia.memoria.RepositorioRutas;
 import persistencia.memoria.RepositorioUnidades;
@@ -84,8 +87,10 @@ public class Control {
     /** HU01: ventana de registro. Al registrar con éxito regresa al menú principal. */
     public void abrirRegistro() {
         CuerpoRegistro cuerpo = new CuerpoRegistro();
-        VistaConcreta vista = new VistaConcreta(conBotonVolver(cuerpo, null, this::abrirMenuInicio));
+        VistaConcreta vista = new VistaConcreta(conBotonVolver("Registro de Usuario", cuerpo, null, this::abrirMenuInicio));
+        vista.getRootPane().setDefaultButton(cuerpo.getBotonConfirmar());
         prepararVentana(vista, false); // sin sesión: el botón Cerrar Sesión se oculta
+        vista.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         cuerpo.getBotonConfirmar().addActionListener(e -> {
             Resultado<Void> r = registrarUsuario(
@@ -100,7 +105,7 @@ public class Control {
                 abrirVentanaPrincipal();
             }
         });
-        mostrar(vista);
+        vista.setVisible(true);
     }
 
     /** HU02: tras iniciar sesión, la pantalla depende del rol. */
@@ -119,11 +124,14 @@ public class Control {
                 cuerpo = menuAdmin;
                 break;
             case CONDUCTOR:
-                cuerpo = new CuerpoFuncionesConductor();
+                CuerpoFuncionesConductor menuConductor = new CuerpoFuncionesConductor();
+                llenarTablaConductor(menuConductor.getModeloTablaUnidades());
+                cuerpo = menuConductor;
                 break;
             default: // ESTUDIANTE y EMPLEADO
                 CuerpoFuncionesUsuario menuUsuario = new CuerpoFuncionesUsuario();
-                llenarTablaRutas(menuUsuario.getModeloTablaRutas(), false); // lista de rutas con sus unidades y cupos
+                llenarTablaRutas(menuUsuario.getModeloTablaRutas(), false);
+                llenarTablaSalidasUsuario(menuUsuario.getModeloTablaReservas());
                 cuerpo = menuUsuario;
         }
 
@@ -151,7 +159,7 @@ public class Control {
                 CuerpoRegistroUnidad cuerpo = new CuerpoRegistroUnidad();
                 PanelEstadoUnidad panel = new PanelEstadoUnidad();
                 conectarFlota(cuerpo, panel);
-                vista.mostrarCuerpo(conBotonVolver(cuerpo, panel, volverAlMenu));
+                vista.mostrarCuerpo(conBotonVolver("Gestión de Flota", cuerpo, panel, volverAlMenu));
             }
         });
         menu.getBotonItinerario().addActionListener(e -> {
@@ -159,7 +167,7 @@ public class Control {
                 CuerpoRegistroRuta cuerpo = new CuerpoRegistroRuta();
                 PanelGestionRutas panel = new PanelGestionRutas();
                 conectarRutas(cuerpo, panel);
-                vista.mostrarCuerpo(conBotonVolver(cuerpo, panel, volverAlMenu));
+                vista.mostrarCuerpo(conBotonVolver("Control de Itinerarios", cuerpo, panel, volverAlMenu));
             }
         });
     }
@@ -205,6 +213,7 @@ public class Control {
             llenarTablaRutas(cuerpo.getModeloTablaRutas(), true);
             panel.actualizarRutas(nombresDeRutas());
             panel.actualizarUnidades(placasDeUnidades());
+            panel.actualizarConductores(cedulasDeConductores());
         };
         refrescar.run();
 
@@ -212,7 +221,7 @@ public class Control {
         cuerpo.getBotonConfirmar().addActionListener(e -> {
             Resultado<Void> r = servicioItinerarios.crearRuta(
                     cuerpo.getcampoNombreRuta().getText(),
-                    TipoRuta.desdeTexto(cuerpo.getTipoRutaSeleccionada()), // devuelve el TIPO de ruta (Urbana / Extraurbana)
+                    TipoRuta.desdeTexto(cuerpo.getTipoRutaSeleccionada()),
                     cuerpo.getcampoInicioJornada().getText(),
                     cuerpo.getcampoFinalJornada().getText());
             JOptionPane.showMessageDialog(cuerpo, r.getMensaje());
@@ -256,6 +265,24 @@ public class Control {
                 refrescar.run();
             }
         });
+
+        // Asignación del conductor responsable de la unidad en la ruta seleccionada
+        panel.getBotonAsignarConductor().addActionListener(e -> {
+            String ruta = panel.getRutaElegida();
+            String placa = panel.getUnidadElegida();
+            String cedulaConductor = panel.getConductorElegido();
+
+            Resultado<Void> r = servicioItinerarios.asignarConductor(
+                    cedulaConductor,
+                    placa,
+                    ruta);
+
+            JOptionPane.showMessageDialog(cuerpo, r.getMensaje());
+
+            if (r.isOk()) {
+                refrescar.run();
+            }
+        });
     }
 
     private void limpiarFormularioRuta(CuerpoRegistroRuta cuerpo) {
@@ -280,35 +307,100 @@ public class Control {
         return placas;
     }
 
+    private List<String> cedulasDeConductores() {
+        List<String> cedulas = new ArrayList<>();
+        for (Usuario conductor : servicioItinerarios.listarConductores()) {
+            cedulas.add(conductor.getCedula());
+        }
+        return cedulas;
+    }
+
     // --------------------------------------------------------- Llenado de tablas
     private void llenarTablaUnidades(DefaultTableModel modelo) {
-        modelo.setRowCount(0); // las tablas de la vista nacen con filas vacías
+        modelo.setRowCount(0);
         for (UnidadTransporte u : servicioFlota.listarUnidades()) {
             modelo.addRow(new Object[] {u.getPlaca(), u.getModelo(), u.getCapacidad(), u.getEstado().getEtiqueta()});
         }
     }
 
     /** conColumnaModificar: la tabla del admin tiene una sexta columna "Modificar Ruta". */
-    private void llenarTablaRutas(DefaultTableModel modelo, boolean conColumnaModificar) {
+    private void llenarTablaRutas(DefaultTableModel modelo, boolean conColumnaConductores) {
         modelo.setRowCount(0);
         for (Ruta ruta : servicioItinerarios.listarRutas()) {
             List<UnidadTransporte> asignadas = servicioItinerarios.unidadesDeRuta(ruta.getNombre());
-            String placas;
+            String textoUnidades;
+            String textoConductores;
+
             if (asignadas.isEmpty()) {
-                placas = "Sin unidades";
+                textoUnidades = "Sin unidades";
+                textoConductores = "Sin conductores";
             } else {
-                List<String> lista = new ArrayList<>();
+                List<String> listaPlacas = new ArrayList<>();
+                List<String> listaConductores = new ArrayList<>();
                 for (UnidadTransporte unidad : asignadas) {
-                    lista.add(unidad.getPlaca());
+                    listaPlacas.add(unidad.getPlaca());
+                    String cond = unidad.tieneConductor() ? unidad.getCedulaConductor() : "Sin asignar";
+                    listaConductores.add(unidad.getPlaca() + ": " + cond);
                 }
-                placas = String.join(", ", lista) + " (Cupos: " + servicioItinerarios.cuposDeRuta(ruta.getNombre()) + ")";
+                textoUnidades = String.join(", ", listaPlacas) + " (Cupos: " + servicioItinerarios.cuposDeRuta(ruta.getNombre()) + ")";
+                textoConductores = String.join(" | ", listaConductores);
             }
-            Object[] fila = {ruta.getNombre(), ruta.getTipo().getEtiqueta(),
-                    ruta.getInicioJornada().format(HORA), ruta.getFinJornada().format(HORA), placas};
-            if (conColumnaModificar) {
-                fila = new Object[] {fila[0], fila[1], fila[2], fila[3], fila[4], "Use el panel inferior"};
+
+            Object[] fila = {
+                ruta.getNombre(),
+                ruta.getTipo().getEtiqueta(),
+                ruta.getInicioJornada().format(HORA),
+                ruta.getFinJornada().format(HORA),
+                textoUnidades
+            };
+
+            if (conColumnaConductores) {
+                fila = new Object[] {fila[0], fila[1], fila[2], fila[3], fila[4], textoConductores};
             }
             modelo.addRow(fila);
+        }
+    }
+
+    private void llenarTablaConductor(DefaultTableModel modelo) {
+        modelo.setRowCount(0);
+        Usuario sesion = servicioUsuarios.getUsuarioSesion();
+        if (sesion == null) {
+            return;
+        }
+        for (UnidadTransporte u : servicioItinerarios.unidadesDeConductor(sesion.getCedula())) {
+            String nombreRuta = u.estaAsignada() ? u.getNombreRuta() : "Sin ruta";
+            String horario = "-";
+            if (u.estaAsignada()) {
+                for (Ruta r : servicioItinerarios.listarRutas()) {
+                    if (r.getNombre().equalsIgnoreCase(nombreRuta)) {
+                        horario = r.getInicioJornada().format(HORA) + " - " + r.getFinJornada().format(HORA);
+                        break;
+                    }
+                }
+            }
+            modelo.addRow(new Object[] {
+                u.getPlaca(),
+                u.getModelo(),
+                u.getCapacidad(),
+                u.getEstado().getEtiqueta(),
+                nombreRuta,
+                horario
+            });
+        }
+    }
+
+    private void llenarTablaSalidasUsuario(DefaultTableModel modelo) {
+        modelo.setRowCount(0);
+        for (Ruta ruta : servicioItinerarios.listarRutas()) {
+            for (UnidadTransporte u : servicioItinerarios.unidadesDeRuta(ruta.getNombre())) {
+                String conductor = u.tieneConductor() ? u.getCedulaConductor() : "Por asignar";
+                modelo.addRow(new Object[] {
+                    u.getPlaca(),
+                    conductor,
+                    ruta.getInicioJornada().format(HORA),
+                    ruta.getNombre()
+                });
+            }
         }
     }
 
@@ -321,21 +413,32 @@ public class Control {
     }
 
     /** Envuelve un cuerpo con una barra superior "Volver al menú" (y un panel inferior opcional) sin tocar el código de las vistas. */
-    private JPanel conBotonVolver(JPanel cuerpo, JPanel inferior, Runnable accionVolver) {
-        JButton volver = new JButton("Volver al menú");
-        volver.addActionListener(e -> accionVolver.run());
-        JPanel barra = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        barra.setBackground(Color.WHITE);
-        barra.add(volver);
-        JPanel contenedor = new JPanel(new BorderLayout());
-        contenedor.setBackground(Color.WHITE);
-        contenedor.add(barra, BorderLayout.NORTH);
-        contenedor.add(cuerpo, BorderLayout.CENTER);
-        if (inferior != null) {
-            contenedor.add(inferior, BorderLayout.SOUTH);
-        }
-        return contenedor;
-    }
+    private JPanel conBotonVolver(String titulo, JPanel cuerpo, JPanel inferior, Runnable accionVolver) {
+     JButton volver = new JButton("Volver al menú");
+     volver.addActionListener(e -> accionVolver.run());
+
+     JLabel etiquetaTitulo = new JLabel(titulo, SwingConstants.CENTER);
+     etiquetaTitulo.setFont(new Font("Arial", Font.BOLD, 22));
+
+     JPanel barra = new JPanel(new BorderLayout());
+     barra.setBackground(Color.WHITE);
+     barra.add(volver, BorderLayout.WEST);
+     barra.add(etiquetaTitulo, BorderLayout.CENTER);
+     // Panel vacío a la derecha del mismo ancho para que el título quede exactamente en el centro
+     JPanel espaciador = new JPanel();
+     espaciador.setOpaque(false);
+     espaciador.setPreferredSize(volver.getPreferredSize());
+     barra.add(espaciador, BorderLayout.EAST);
+
+     JPanel contenedor = new JPanel(new BorderLayout());
+     contenedor.setBackground(Color.WHITE);
+     contenedor.add(barra, BorderLayout.NORTH);
+     contenedor.add(cuerpo, BorderLayout.CENTER);
+     if (inferior != null) {
+         contenedor.add(inferior, BorderLayout.SOUTH);
+     }
+     return contenedor;
+ }
 
     private void prepararVentana(VistaConcreta vista, boolean conSesion) {
         vista.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
