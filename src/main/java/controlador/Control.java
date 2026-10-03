@@ -322,7 +322,7 @@ public class Control {
         }
     }
 
-    /** conColumnaModificar: la tabla del admin tiene una sexta columna "Modificar Ruta". */
+    /** conColumnaConductores: la tabla del admin tiene una sexta columna "Modificar Ruta". */
     private void llenarTablaRutas(DefaultTableModel modelo, boolean conColumnaConductores) {
         modelo.setRowCount(0);
         for (Ruta ruta : servicioItinerarios.listarRutas()) {
@@ -385,21 +385,6 @@ public class Control {
                 nombreRuta,
                 horario
             });
-        }
-    }
-
-    private void llenarTablaSalidasUsuario(DefaultTableModel modelo) {
-        modelo.setRowCount(0);
-        for (Ruta ruta : servicioItinerarios.listarRutas()) {
-            for (UnidadTransporte u : servicioItinerarios.unidadesDeRuta(ruta.getNombre())) {
-                String conductor = u.tieneConductor() ? u.getCedulaConductor() : "Por asignar";
-                modelo.addRow(new Object[] {
-                    u.getPlaca(),
-                    conductor,
-                    ruta.getInicioJornada().format(HORA),
-                    ruta.getNombre()
-                });
-            }
         }
     }
 
