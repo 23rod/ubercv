@@ -131,7 +131,6 @@ public class Control {
             default: // ESTUDIANTE y EMPLEADO
                 CuerpoFuncionesUsuario menuUsuario = new CuerpoFuncionesUsuario();
                 llenarTablaRutas(menuUsuario.getModeloTablaRutas(), false);
-                llenarTablaSalidasUsuario(menuUsuario.getModeloTablaReservas());
                 cuerpo = menuUsuario;
         }
 
