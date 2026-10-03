@@ -156,10 +156,6 @@ public class ServicioItinerarios {
                 && unidad.getCedulaConductor().equals(conductor.getCedula())) {
             return Resultado.error(Mensajes.CONDUCTOR_YA_ASIGNADO);
         }
-        if (unidad.tieneConductor()
-                && unidad.getCedulaConductor().equals(conductor.getCedula())) {
-            return Resultado.error(Mensajes.CONDUCTOR_YA_ASIGNADO);
-        }
         // Regla 1:1 -> Verificar que el conductor no esté asignado a otra unidad
         for (UnidadTransporte otra : unidades.listar()) {
             if (!otra.getPlaca().equalsIgnoreCase(unidad.getPlaca())
