@@ -58,7 +58,7 @@ public class CuerpoRegistroRuta extends JPanel {
         panelBoton.add(botonConfirmar);
 
         // Cracion de la tabla de rutas
-        String[] nombreColumnas = {"Nombre de Ruta", "Tipo de Ruta", "Inicio de Jornada", "Final de Jornada", "Unidades Asignadas(Placa)", "Modificar Ruta"};
+        String[] nombreColumnas = {"Nombre de Ruta", "Tipo", "Inicio", "Fin", "Unidades y Cupos", "Conductores Asignados"};
         filasTablaRutas = new DefaultTableModel(nombreColumnas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
             @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
             public boolean isCellEditable(int row, int column) {
@@ -69,6 +69,12 @@ public class CuerpoRegistroRuta extends JPanel {
         tablaRutas.setRowHeight(30);
         tablaRutas.getTableHeader().setReorderingAllowed(false);
         tablaRutas.getTableHeader().setResizingAllowed(false);
+        tablaRutas.getColumnModel().getColumn(0).setPreferredWidth(140); // Nombre de Ruta
+        tablaRutas.getColumnModel().getColumn(1).setPreferredWidth(80);  // Tipo
+        tablaRutas.getColumnModel().getColumn(2).setPreferredWidth(60);  // Inicio
+        tablaRutas.getColumnModel().getColumn(3).setPreferredWidth(60);  // Fin
+        tablaRutas.getColumnModel().getColumn(4).setPreferredWidth(240); // Unidades y Cupos
+        tablaRutas.getColumnModel().getColumn(5).setPreferredWidth(340); // Conductores Asignados
         
         JScrollPane tablaConScroll = new JScrollPane(tablaRutas); //Metodo para garantizar la graficacion y visualizacion de una tabla de N filas
         tablaConScroll.setPreferredSize(new DimensionUIResource(920, 150));

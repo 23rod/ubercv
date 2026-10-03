@@ -8,6 +8,7 @@ public class UnidadTransporte {
     private final int capacidad;
     private EstadoUnidad estado;
     private String nombreRuta;
+    private String cedulaConductor;
 
     public UnidadTransporte(String placa, String modelo, int capacidad, EstadoUnidad estado) {
         this.placa = placa;
@@ -21,11 +22,17 @@ public class UnidadTransporte {
     public int getCapacidad() { return capacidad; }
     public EstadoUnidad getEstado() { return estado; }
     public String getNombreRuta() { return nombreRuta; }
+    public String getCedulaConductor() { return cedulaConductor; }
 
     public void setEstado(EstadoUnidad estado) { this.estado = estado; }
     public void setNombreRuta(String nombreRuta) { this.nombreRuta = nombreRuta; }
+    public void setCedulaConductor(String cedulaConductor) { this.cedulaConductor = cedulaConductor; }
 
     public boolean estaAsignada() {
         return nombreRuta != null;
+    }
+
+    public boolean tieneConductor() {
+        return cedulaConductor != null && !cedulaConductor.isBlank();
     }
 }

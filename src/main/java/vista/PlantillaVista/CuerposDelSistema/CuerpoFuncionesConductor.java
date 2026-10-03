@@ -20,7 +20,7 @@ public class CuerpoFuncionesConductor extends JPanel {
         this.setBackground(new ColorUIResource(255,255,255));
 
         // Creacion de la tabla de rutas
-        String[] nombreColumnas = {"Placa", "Modelo", "Capacidad", "Estado Operativo", "Confirmar Actividad"};
+        String[] nombreColumnas = {"Placa", "Modelo", "Capacidad", "Estado Operativo", "Ruta Asignada", "Horario"};
         filasTablaUnidades = new DefaultTableModel(nombreColumnas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
             @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
             public boolean isCellEditable(int row, int column) {

@@ -49,4 +49,14 @@ public class Mensajes {
     public static final String CONFIRMAR_CAMBIO = "¿Está seguro del cambio?";
     public static final String UNIDAD_YA_ASIGNADA = "En esta ruta ya se encuentra asignada la unidad";
     public static final String UNIDAD_NO_ACTIVA = "Solo se pueden asignar unidades en estado Activo";
+
+    // Asignación de conductores a unidades/rutas
+    public static final String CONDUCTOR_ASIGNADO = "Conductor asignado correctamente";
+    public static final String CONDUCTOR_REASIGNADO = "Conductor reasignado correctamente";
+    public static final String CONDUCTOR_YA_ASIGNADO = "En esta unidad ya se encuentra asignado el conductor";
+    public static final String CONDUCTOR_OCUPADO = "El conductor ya se encuentra asignado a otra unidad";
+    public static final String CONDUCTOR_NO_ENCONTRADO = "Conductor no encontrado";
+    public static final String USUARIO_NO_ES_CONDUCTOR = "El usuario seleccionado no tiene rol de Conductor";
+    public static final String UNIDAD_SIN_RUTA = "La unidad debe estar asignada a una ruta antes de asignarle un conductor";
+    public static final String UNIDAD_NO_PERTENECE_RUTA = "La unidad seleccionada no pertenece a la ruta elegida";
 }
