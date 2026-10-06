@@ -1,6 +1,9 @@
 package vista.PlantillaVista;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
 //Imports para la fuente de texto de las labels
 import java.awt.Font;
 
@@ -9,11 +12,15 @@ import java.awt.Font;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 //import javax.swing.JOptionPane;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 //Imports para recoger los datos de inicio de sesión: contrasena y correo
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
+import javax.swing.border.EmptyBorder;
 import javax.swing.JPasswordField;
 
 import controlador.Control;
@@ -45,12 +52,6 @@ public class VentanaInicioSesion extends JFrame {
 
         //Creamos los botones de registrarse e iniciar sesión
         crearBotones(panel, control);     
-
-
-
-
-
-
     }
 
     private JPanel Panel() {
@@ -101,15 +102,66 @@ public class VentanaInicioSesion extends JFrame {
         //Crear campos de texto para el correo
         nombreUsuarioField = new JTextField();
         nombreUsuarioField.setBounds(130, 180, 230, 30);
-        nombreUsuarioField.setText("correo123@gmail.com");        
+        nombreUsuarioField.setText("");        
 
+        //Crear campo de texto para la contraseña
+        campoContrasena(panel);
+        
+
+        //Campos de una linea de texto
+        panel.add(nombreUsuarioField);                
+    }   
+
+    private void campoContrasena(JPanel panel) {
+        try{
         //Crear campo de texto para la contraseña
         contrasenaUsuarioField = new JPasswordField();
         contrasenaUsuarioField.setBounds(130, 240, 230, 30);
+        contrasenaUsuarioField.setBorder(null); // Quitar borde para que use el del contenedor del ícono
 
-        //Campos de una linea de texto
-        panel.add(nombreUsuarioField);        
-        panel.add(contrasenaUsuarioField);
+        //Guardar el caracter de ocultación por defecto del sistema
+        final char defaultEchoChar = contrasenaUsuarioField.getEchoChar();
+
+        // Cargar iconos
+        ImageIcon iconoAbierto = new ImageIcon(getClass().getResource("/vista/PlantillaVista/ImagenesDeInicio/ojo.png"));
+        ImageIcon iconoCerrado = new ImageIcon(getClass().getResource("/vista/PlantillaVista/ImagenesDeInicio/ojo_cerrado.png"));
+        // Crear el botón toggle (texto del ojo)
+        JToggleButton toggleButton = new JToggleButton(iconoCerrado);        
+        toggleButton.setPreferredSize(new Dimension(32, 24));
+        toggleButton.setFocusPainted(false);
+        toggleButton.setContentAreaFilled(false);
+        toggleButton.setBorderPainted(false);
+        toggleButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        toggleButton.setToolTipText("Mostrar/Ocultar contraseña");
+
+        // Alternar visibilidad al presionar
+        toggleButton.addActionListener(e -> {
+            if (toggleButton.isSelected()) {
+                contrasenaUsuarioField.setEchoChar((char) 0); // Texto visible
+                toggleButton.setIcon(iconoAbierto);         // Cambiar símbolo/icono
+            } else {
+                contrasenaUsuarioField.setEchoChar(defaultEchoChar); // Volver a ocultar
+                toggleButton.setIcon(iconoCerrado);
+            }
+        });
+
+        // Contenedor estilizado para simular un solo campo de texto
+        JPanel fieldContainer = new JPanel(new BorderLayout());
+        fieldContainer.setBackground(Color.WHITE);
+        fieldContainer.setBounds(130, 240, 230, 30);
+        fieldContainer.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.GRAY, 1),
+                new EmptyBorder(4, 6, 4, 6)
+        ));
+
+        fieldContainer.add(contrasenaUsuarioField, BorderLayout.CENTER);
+        fieldContainer.add(toggleButton, BorderLayout.EAST);
+
+        panel.add(fieldContainer);  
+        }
+        catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al crear el campo de contraseña: " + e.getMessage());
+        }      
     }
 
     private void crearBotones(JPanel panel, Control control) {
@@ -176,6 +228,10 @@ public class VentanaInicioSesion extends JFrame {
         });
     }   
     
+    public String getContrasenaUsuario() {
+        return new String(contrasenaUsuarioField.getPassword());
+    }
+
     //Prueba de la ventana de inicio de sesión
     public static void main(String[] args) {
         Control control = new Control();

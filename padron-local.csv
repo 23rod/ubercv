@@ -1,0 +1,12 @@
+# PLANTILLA del padron local. Pasos:
+#   1) Escribe una persona por linea:  cedula,rol (la cedula de 5 a 10 digitos sin puntos ni guiones)
+#   3) Roles validos: Estudiante, Empleado, Conductor, Admin de Transporte
+#   4) Reinicia la aplicacion si está abierta. padron-local.csv NO se sube a GitHub (por eso está en .gitignore).
+# Las lineas que empiezan con # son comentarios. Estos ejemplos son ficticios:
+60000001,Estudiante
+60000002,Empleado
+12345, Conductor
+60000003,Admin de Transporte
+30049983,Admin de Transporte
+32111397,Admin de Transporte
+31527374,Admin de Transporte
