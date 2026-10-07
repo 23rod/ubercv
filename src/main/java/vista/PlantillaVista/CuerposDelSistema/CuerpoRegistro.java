@@ -1,6 +1,11 @@
 package vista.PlantillaVista.CuerposDelSistema;
 
 import vista.PlantillaVista.CrearSubPanel;
+
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 
@@ -64,11 +69,54 @@ public class CuerpoRegistro extends JPanel {
         
         add(panelCedula);
         add(panelCorreo);
-        add(panelContrasenia);
+        crearCampoContrasenia();
         add(panelConfirmarContrasenia);
         add(panelPlegableRoles);
         add(panelBoton);
     }
+
+    //Creación del ojo para visualizar la contraseña
+    private void crearCampoContrasenia() {
+        JLabel contraseniaLabel = new JLabel("Contraseña:");
+        campoContrasenia = new JPasswordField(20);        
+        campoContrasenia.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+
+        // Guardar el caracter de ocultación por defecto del sistema
+        final char defaultEchoChar = campoContrasenia.getEchoChar();
+
+        // Cargar iconos
+        ImageIcon iconoAbierto = new ImageIcon(getClass().getResource("/vista/PlantillaVista/ImagenesDeInicio/ojo.png"));
+        ImageIcon iconoCerrado = new ImageIcon(getClass().getResource("/vista/PlantillaVista/ImagenesDeInicio/ojo-cerrado.png"));
+        
+        // Crear el botón toggle (texto del ojo)
+        JToggleButton toggleButton = new JToggleButton(iconoCerrado);        
+        toggleButton.setPreferredSize(new Dimension(32, 24));
+        toggleButton.setFocusPainted(false);
+        toggleButton.setContentAreaFilled(false);
+        toggleButton.setBorderPainted(false);
+        toggleButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        toggleButton.setToolTipText("Mostrar/Ocultar contraseña");
+
+        // Alternar visibilidad al presionar
+        toggleButton.addActionListener(e -> {
+            if (toggleButton.isSelected()) {
+                campoContrasenia.setEchoChar((char) 0); // Texto visible
+                toggleButton.setIcon(iconoAbierto);         // Cambiar símbolo/icono
+            } else {
+                campoContrasenia.setEchoChar(defaultEchoChar); // Volver a ocultar
+                toggleButton.setIcon(iconoCerrado);
+            }
+        });
+
+        // Contenedor estilizado para simular un solo campo de texto
+        JPanel panelContrasenia = CrearSubPanel.subPanel();
+        panelContrasenia.setBounds(15, 15, 300, 50);
+        panelContrasenia.add(contraseniaLabel);
+        panelContrasenia.add(campoContrasenia);
+        panelContrasenia.add(toggleButton);
+        add(panelContrasenia);
+    }
+
 
     // ----------------------------------------- Acceso para los controladores ---------------------------------------------------------
     public JTextField getCampoCedula(){
