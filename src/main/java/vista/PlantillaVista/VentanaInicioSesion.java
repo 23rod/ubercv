@@ -1,6 +1,9 @@
 package vista.PlantillaVista;
 
 import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.BorderLayout;
 //Imports para la fuente de texto de las labels
 import java.awt.Font;
 
@@ -9,11 +12,16 @@ import java.awt.Font;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 //import javax.swing.JOptionPane;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 //Imports para recoger los datos de inicio de sesión: contrasena y correo
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
+//import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import javax.swing.JPasswordField;
 
 import controlador.Control;
@@ -102,14 +110,66 @@ public class VentanaInicioSesion extends JFrame {
         nombreUsuarioField = new JTextField();
         nombreUsuarioField.setBounds(130, 180, 230, 30);
 
+        
         //Crear campo de texto para la contraseña
-        contrasenaUsuarioField = new JPasswordField();
-        contrasenaUsuarioField.setBounds(130, 240, 230, 30);
+        campoContrasena(panel);
 
         //Campos de una linea de texto
         panel.add(nombreUsuarioField);        
         panel.add(contrasenaUsuarioField);
     }
+
+
+    private void campoContrasena(JPanel panel) {        
+        //Crear campo de texto para la contraseña
+        contrasenaUsuarioField = new JPasswordField();
+        contrasenaUsuarioField.setBounds(130, 245, 180, 18);
+        contrasenaUsuarioField.setBorder(null); // Quitar borde para que use el del contenedor del ícono
+
+        //Guardar el caracter de ocultación por defecto del sistema
+        final char defaultEchoChar = contrasenaUsuarioField.getEchoChar();
+
+        // Cargar iconos
+        ImageIcon iconoAbierto = new ImageIcon(getClass().getResource("/vista/PlantillaVista/ImagenesDeInicio/ojo.png"));
+        ImageIcon iconoCerrado = new ImageIcon(getClass().getResource("/vista/PlantillaVista/ImagenesDeInicio/ojo-cerrado.png"));
+        // Crear el botón toggle (texto del ojo)
+        // Crear el botón toggle (texto del ojo)
+        JToggleButton toggleButton = new JToggleButton(iconoCerrado);        
+        toggleButton.setPreferredSize(new Dimension(32, 24));
+        toggleButton.setFocusPainted(false);
+        toggleButton.setContentAreaFilled(false);
+        toggleButton.setBorderPainted(false);
+        toggleButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        toggleButton.setToolTipText("Mostrar/Ocultar contraseña");
+
+        // Alternar visibilidad al presionar
+        toggleButton.addActionListener(e -> {
+            if (toggleButton.isSelected()) {
+                contrasenaUsuarioField.setEchoChar((char) 0); // Texto visible
+                toggleButton.setIcon(iconoAbierto);         // Cambiar símbolo/icono
+            } else {
+                contrasenaUsuarioField.setEchoChar(defaultEchoChar); // Volver a ocultar
+                toggleButton.setIcon(iconoCerrado);
+            }
+        });
+
+        // Contenedor estilizado para simular un solo campo de texto
+        JPanel fieldContainer = new JPanel(new BorderLayout());
+        fieldContainer.setBackground(Color.WHITE);
+        fieldContainer.setBounds(128, 240, 230, 30);
+        fieldContainer.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(Color.GRAY, 1),
+        new EmptyBorder(4, 6, 4, 6)));
+
+
+        fieldContainer.add(contrasenaUsuarioField, BorderLayout.CENTER);
+        fieldContainer.add(toggleButton, BorderLayout.EAST);
+        panel.add(fieldContainer);  
+
+    }
+              
+      
+    
 
     private void crearBotones(JPanel panel, Control control) {
         //Boton para iniciar sesión
@@ -174,10 +234,5 @@ public class VentanaInicioSesion extends JFrame {
             control.abrirRegistro(); // el Control abre la ventana de registro y cierra las demas
             this.dispose();
         });
-    }   
-    
-    
-
-
-
+    } 
 }
