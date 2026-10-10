@@ -154,17 +154,18 @@ public class VentanaPagoMovil extends JPanel {
     public JTextField getCampoReferencia(){
         return campoReferencia;
     }    
-    public int getMonto() {
-        String texto = campoMonto.getText().trim();
-        if (texto.isEmpty()) {
-            return 0;
+    public int getMonto(){
+        try { // Confirmacion de que el texto en la casilla sea un digito 
+            campoMonto.commitEdit(); // Fuerza a JFormattedTextField a guardar el texto actual como valor
+        } catch (java.text.ParseException e) {
+            // Si el texto escrito no es un número válido, se ignora la edición no confirmada
         }
-        try {
-            return Integer.parseInt(texto);
-        } catch (NumberFormatException e) {
-            return 0; // Si supera el rango máximo de un int
+        Object valor = campoMonto.getValue();
+        if (valor instanceof Number) {
+            return ((Number) valor).intValue();
         }
-    }
+        return 0; // Caso que se confime la recarga sin ingresar un monto
+    }  
     public JButton getBotonConfirmar(){
         return botonConfirmar;
     } 
