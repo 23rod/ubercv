@@ -8,6 +8,7 @@ public class CuerpoFuncionesAdmin extends JPanel {
 
     private JButton botonFlota;
     private JButton botonItinerarios;
+    private JButton botonTarifas;
     
     public CuerpoFuncionesAdmin(){
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
@@ -21,14 +22,20 @@ public class CuerpoFuncionesAdmin extends JPanel {
         panelBotonFlota.add(botonFlota);
 
         // Creacion del boton Itinerarios
-        botonItinerarios = new JButton("Control de Itinerarios");
+        botonItinerarios = new JButton("Gestión de Itinerarios");
         JPanel panelBotonItinerarios = CrearSubPanel.subPanel();
         panelBotonItinerarios.add(botonItinerarios);
+
+        // Creacion del boton Gestion tarifas
+        botonTarifas = new JButton("Gestión de Tarifas");
+        JPanel panelbotonTarifas = CrearSubPanel.subPanel();
+        panelbotonTarifas.add(botonTarifas);
 
         // --------------------------------------- Disposicion del panel central del Cuerpo(Registro) -------------------------------------------- 
         
         add(panelBotonFlota);
         add(panelBotonItinerarios);
+        add(panelbotonTarifas);
     }
 
     // ----------------------------------------- Acceso para los controladores ---------------------------------------------------------
@@ -38,5 +45,7 @@ public class CuerpoFuncionesAdmin extends JPanel {
     public JButton getBotonItinerario(){
         return botonItinerarios;
     }   
+    public JButton getBotonTarifas(){
+        return botonTarifas;
+    }   
 }
- 

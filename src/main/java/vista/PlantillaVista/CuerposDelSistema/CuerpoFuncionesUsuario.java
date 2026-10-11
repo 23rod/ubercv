@@ -9,6 +9,7 @@ import vista.PlantillaVista.CrearSubPanel;
 
 public class CuerpoFuncionesUsuario extends JPanel {
     
+    private JButton botonMonederoVirtual;
     private JTable tablaRutas;
     private DefaultTableModel filasTablaRutas;
     
@@ -17,6 +18,11 @@ public class CuerpoFuncionesUsuario extends JPanel {
         this.setOpaque(true);
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
+
+        // Creacion del boton Recarga Monedero
+        botonMonederoVirtual = new JButton("Monedero Virtual");
+        JPanel panelMVirtual = CrearSubPanel.subPanel();
+        panelMVirtual.add(botonMonederoVirtual);
 
         // Creacion de la tabla de rutas
         String[] nombreColumnasRutas = {"Nombre de Ruta", "Tipo de Ruta", "Inicio de Jornada", "Final de Jornada", "Unidades Asignadas(Placa)"};
@@ -38,9 +44,13 @@ public class CuerpoFuncionesUsuario extends JPanel {
         panelTablaRutas.add(tablaConScrollRutas);
 
         // --------------------------------------- disposicion del panel central del Cuerpo(FuncionesUsuarios) -------------------------------------------- 
+        add(panelMVirtual);
         add(panelTablaRutas);
     }
     // ----------------------------------------- Acceso para los controladores ---------------------------------------------------------
+    public JButton getBotonMonederoVirtual(){
+        return botonMonederoVirtual;
+    }
     public DefaultTableModel getModeloTablaRutas(){
         return filasTablaRutas;
     }
