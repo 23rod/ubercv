@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.LinkedHashMap;
@@ -19,21 +18,26 @@ public class RepositorioUsuarios {
     private final Map<String, Usuario> usuariosPorCorreo = new LinkedHashMap<>();
     private final Map<String, Usuario> usuariosPorCedula = new LinkedHashMap<>();
 
-    private static final String ARCHIVO_USUARIOS = "C:\\proyecto_transporte\\ubercv\\src\\main\\java\\persistencia\\memoria\\usuariosAlmacenados.txt";
+    private final Path archivo; // null = solo memoria (lo usan las pruebas)
 
+    /** Repositorio solo en memoria: no lee ni escribe archivos. */
     public RepositorioUsuarios() {
+        this(null);
+    }
+
+    /** Repositorio que guarda en el archivo indicado. Si el archivo no existe, empieza vacío. */
+    public RepositorioUsuarios(Path archivo) {
+        this.archivo = archivo;
         cargarUsuariosDesdeArchivo();
-        reescribirArchivo(); // Limpia los duplicados existentes en el archivo al arrancar
     }
 
     private void cargarUsuariosDesdeArchivo() {
-        Path ruta = Path.of(ARCHIVO_USUARIOS);
-        if (!Files.exists(ruta)) {
+        if (archivo == null || !Files.exists(archivo)) {
             return;
         }
 
         try {
-            List<String> lineas = Files.readAllLines(ruta, StandardCharsets.UTF_8);
+            List<String> lineas = Files.readAllLines(archivo, StandardCharsets.UTF_8);
             for (String linea : lineas) {
                 linea = linea.trim();
                 if (linea.isEmpty() || linea.startsWith("correo,")) {
@@ -53,7 +57,7 @@ public class RepositorioUsuarios {
                         sal = new byte[16]; // Fallback si venía corrupta
                     }
                     String cedula = partes[3].trim();
-                    Rol rol = Rol.desdeTexto(partes[4].trim());
+                    Rol rol = leerRol(partes[4]);
 
                     Usuario usuario = new Usuario(correo, hash, sal, cedula, rol);
                     usuariosPorCorreo.put(correo, usuario);
@@ -64,7 +68,7 @@ public class RepositorioUsuarios {
                     String correo = partes[0].trim().toLowerCase();
                     String hash = partes[1].trim();
                     String cedula = partes[2].trim();
-                    Rol rol = Rol.desdeTexto(partes[3].trim());
+                    Rol rol = leerRol(partes[3]);
 
                     Usuario usuario = new Usuario(correo, hash, new byte[16], cedula, rol);
                     usuariosPorCorreo.put(correo, usuario);
@@ -76,7 +80,16 @@ public class RepositorioUsuarios {
         }
     }
 
+    /** El archivo guarda el nombre del rol (ADMIN_TRANSPORTE); si no coincide, se prueba con la etiqueta. */
+    private static Rol leerRol(String texto) {
+        Rol rol = AlmacenArchivo.enumONulo(Rol.class, texto);
+        return (rol != null) ? rol : Rol.desdeTexto(texto);
+    }
+
     private void reescribirArchivo() {
+        if (archivo == null) {
+            return;
+        }
         try {
             List<String> lineas = new ArrayList<>();
             for (Usuario u : usuariosPorCorreo.values()) {
@@ -91,13 +104,7 @@ public class RepositorioUsuarios {
                 lineas.add(linea);
             }
 
-            Files.write(
-                Path.of(ARCHIVO_USUARIOS),
-                lineas,
-                StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING
-            );
+            AlmacenArchivo.escribirAtomico(archivo, lineas);
         } catch (IOException e) {
             System.err.println("Error al reescribir usuarios en archivo: " + e.getMessage());
         }

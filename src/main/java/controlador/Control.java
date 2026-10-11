@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Window;
+import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,13 +55,18 @@ public class Control {
     private final ServicioItinerarios servicioItinerarios;
 
     public Control() {
-        RepositorioUsuarios repositorioUsuarios = new RepositorioUsuarios();
-        DatosSemilla.sembrarUsuarios(repositorioUsuarios); // cuentas de demo
+        // Los datos se guardan en la carpeta "datos/" (se crea sola; la app se ejecuta desde la raíz del proyecto)
+        RepositorioUsuarios repositorioUsuarios = new RepositorioUsuarios(Path.of("datos", "usuarios.txt"));
+        if (repositorioUsuarios.listar().isEmpty()) {
+            DatosSemilla.sembrarUsuarios(repositorioUsuarios); // cuentas de demo, solo en el primer arranque
+        }
         this.servicioUsuarios = new ServicioUsuarios(repositorioUsuarios);
 
-        RepositorioUnidades repositorioUnidades = new RepositorioUnidades();
-        RepositorioRutas repositorioRutas = new RepositorioRutas();
-        DatosSemilla.sembrarFlota(repositorioUnidades, repositorioRutas); // unidades y rutas de demo
+        RepositorioUnidades repositorioUnidades = new RepositorioUnidades(Path.of("datos", "unidades.txt"));
+        RepositorioRutas repositorioRutas = new RepositorioRutas(Path.of("datos", "rutas.txt"));
+        if (repositorioUnidades.listar().isEmpty() && repositorioRutas.listar().isEmpty()) {
+            DatosSemilla.sembrarFlota(repositorioUnidades, repositorioRutas); // unidades y rutas de demo, solo en el primer arranque
+        }
         this.servicioFlota = new ServicioFlota(repositorioUnidades, servicioUsuarios);
         this.servicioItinerarios = new ServicioItinerarios(repositorioRutas, repositorioUnidades, servicioUsuarios);
     }
