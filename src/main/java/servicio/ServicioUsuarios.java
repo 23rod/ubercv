@@ -11,6 +11,8 @@ import persistencia.memoria.RepositorioUsuarios;
 import utilidades.seguridad.HashClave;
 import utilidades.validadores.Validador;
 
+
+
 /**
  * Lógica de HU01 (registro) y HU02 (inicio de sesión) más la sesión actual.
  * No usa Swing: por eso se puede probar con JUnit sin abrir ninguna ventana.
@@ -18,11 +20,12 @@ import utilidades.validadores.Validador;
 public class ServicioUsuarios {
 
     private final RepositorioUsuarios repositorio;
-    private Usuario usuarioSesion; // null = nadie ha iniciado sesión
+    private Usuario usuarioSesion; // null = nadie ha iniciado sesión    
 
     public ServicioUsuarios(RepositorioUsuarios repositorio) {
         this.repositorio = repositorio;
-    }
+    }   
+
 
     // ---------------------------------------------------------------- HU01
     public Resultado<Void> registrar(String correo, String clave, String confirmacion, String cedula, Rol rol) {

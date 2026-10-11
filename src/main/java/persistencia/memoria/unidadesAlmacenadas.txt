@@ -1,1 +1,4 @@
-placa,modelo,capacidad,estado,nombreRuta,cedulaConductor
+ABC123,Yutong ZK6,40,ACTIVO,UCV - Altamira,20000003
+DEF456,Encava E-NT610,35,ACTIVO,,
+59A3V,Yutong ZK6,42,ACTIVO,UCV - Las Vegas,1234567
+GHI789,Mercedes Benz O500,45,EN_MANTENIMIENTO,,

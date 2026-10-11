@@ -65,10 +65,15 @@ public class ServicioFlota {
         }
         boolean teniaRuta = unidad.estaAsignada();
         unidad.setEstado(nuevoEstado);
+        
         if (nuevoEstado != EstadoUnidad.ACTIVO) {
             unidad.setNombreRuta(null);
             unidad.setCedulaConductor(null);
-        }
+            
+        }        
+        //Modificar la unidad en el archivo de texto (reescribir todo el archivo)
+        repositorio.modificar(unidad, nuevoEstado);
+        
         boolean liberada = teniaRuta && nuevoEstado != EstadoUnidad.ACTIVO;
         return Resultado.exito(null, liberada ? Mensajes.ESTADO_ACTUALIZADO_LIBERADA : Mensajes.ESTADO_ACTUALIZADO);
     }
