@@ -1,1 +1,3 @@
-nombre,tipo,iniciodejornada,findejornada
+UCV - Altamira,URBANA,06:00,20:00
+UCV - Guarenas,EXTRAURBANA,05:30,19:30
+UCV - Las Vegas,URBANA,07:00,09:00
