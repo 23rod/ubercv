@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,24 +12,27 @@ import modelo.UnidadTransporte;
 import modelo.EstadoUnidad;
 
 public class RepositorioUnidades {
-    private static final String ARCHIVO_UNIDADES = "C:\\proyecto_transporte\\ubercv\\src\\main\\java\\persistencia\\memoria\\unidadesAlmacenadas.txt";
+    private final Path archivo; // null = solo memoria (lo usan las pruebas)
     private final Map<String, UnidadTransporte> porPlaca = new LinkedHashMap<>();
 
+    /** Repositorio solo en memoria: no lee ni escribe archivos. */
     public RepositorioUnidades() {
+        this(null);
+    }
+
+    /** Repositorio que guarda en el archivo indicado. Si el archivo no existe, empieza vacío. */
+    public RepositorioUnidades(Path archivo) {
+        this.archivo = archivo;
         cargarUnidadesDesdeArchivo();
-        // Opcional: una vez cargado en memoria limpiando duplicados,
-        // reescribimos el archivo limpio de una vez.
-        reescribirArchivo();
     }
 
     private void cargarUnidadesDesdeArchivo() {
-        Path ruta = Path.of(ARCHIVO_UNIDADES);
-        if (!Files.exists(ruta)) {
+        if (archivo == null || !Files.exists(archivo)) {
             return;
         }
 
         try {
-            List<String> lineas = Files.readAllLines(ruta, StandardCharsets.UTF_8);
+            List<String> lineas = Files.readAllLines(archivo, StandardCharsets.UTF_8);
             if (lineas.isEmpty()) {
                 //System.out.println("El archivo de unidades está vacío.");
                 return;
@@ -51,7 +53,11 @@ public class RepositorioUnidades {
                 String placa = partes[0].trim().toUpperCase();
                 String modelo = partes[1].trim();
                 int capacidad = Integer.parseInt(partes[2].trim());
-                EstadoUnidad estado = EstadoUnidad.desdeTexto(partes[3].trim());
+                // El archivo guarda el nombre (EN_MANTENIMIENTO); si no coincide, se prueba con la etiqueta
+                EstadoUnidad estado = AlmacenArchivo.enumONulo(EstadoUnidad.class, partes[3]);
+                if (estado == null) {
+                    estado = EstadoUnidad.desdeTexto(partes[3]);
+                }
                 if (estado == null) {
                     System.err.println("Advertencia: Estado no válido en la línea: " + linea);
                     continue; // No cargar una unidad con estado corrupto/nulo
@@ -81,6 +87,9 @@ public class RepositorioUnidades {
      * Sobrescribe completamente el archivo con las unidades no repetidas almacenadas en el mapa.
      */
     private void reescribirArchivo() {
+        if (archivo == null) {
+            return;
+        }
         try {
             List<String> lineasAEscribir = new ArrayList<>();            
 
@@ -99,14 +108,7 @@ public class RepositorioUnidades {
                 lineasAEscribir.add(linea);
             }
 
-            // StandardOpenOption.CREATE y TRUNCATE_EXISTING limpian el archivo y escriben todo desde cero
-            Files.write(
-                Path.of(ARCHIVO_UNIDADES),
-                lineasAEscribir,
-                StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING
-            );
+            AlmacenArchivo.escribirAtomico(archivo, lineasAEscribir);
 
         } catch (IOException e) {
             System.err.println("Error al reescribir el archivo de unidades: " + e.getMessage());

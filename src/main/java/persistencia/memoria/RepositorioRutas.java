@@ -14,32 +14,34 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 /** "Base de datos" de rutas en memoria. El nombre no distingue mayúsculas de minúsculas. */
 public class RepositorioRutas {
 
     private final Map<String, Ruta> porNombre = new LinkedHashMap<>();
     //Lectura y escritura de rutas en archivo de texto
-    private static final String ARCHIVO_RUTAS = "C:\\proyecto_transporte\\ubercv\\src\\main\\java\\persistencia\\memoria\\rutasAlmacenadas.txt";
+    private final Path archivo; // null = solo memoria (lo usan las pruebas)
     
 
-    public RepositorioRutas(){
-        // Cargar rutas desde el archivo al iniciar el repositorio
+    /** Repositorio solo en memoria: no lee ni escribe archivos. */
+    public RepositorioRutas() {
+        this(null);
+    }
+
+    /** Repositorio que guarda en el archivo indicado. Si el archivo no existe, empieza vacío. */
+    public RepositorioRutas(Path archivo) {
+        this.archivo = archivo;
         cargarRutasDesdeArchivo();
-        //Se limpian duplicados y se reescribe el archivo para mantenerlo limpio s
-        reescribirArchivo(); // Guardar en archivo al iniciar el repositorio
     }
 
 
     private void cargarRutasDesdeArchivo() {        
-        Path archivoRutas = Path.of(ARCHIVO_RUTAS);
-        if (!Files.exists(archivoRutas)) {
-            return; // Si el archivo no existe, no hacemos nada
+        if (archivo == null || !Files.exists(archivo)) {
+            return; // Sin archivo, el repositorio empieza vacío
         }        
         try 
         {
-            List<String> lineas = Files.readAllLines(archivoRutas, StandardCharsets.UTF_8);
+            List<String> lineas = Files.readAllLines(archivo, StandardCharsets.UTF_8);
             if (lineas.isEmpty()) {
                 //System.out.println("El archivo de rutas está vacío.");
                 return;
@@ -54,7 +56,10 @@ public class RepositorioRutas {
                 //Creamos la ruta con los datos extraidos del archivo de texto
                 //-------------------Nombre-------------------TipoRuta------------------InicioJornada-----------FinJornada---------
                 String nombre = partes[0].trim();
-                TipoRuta tipo = TipoRuta.desdeTexto(partes[1].trim());
+                TipoRuta tipo = AlmacenArchivo.enumONulo(TipoRuta.class, partes[1]);
+                if (tipo == null) {
+                    tipo = TipoRuta.desdeTexto(partes[1]);
+                }
                 LocalTime inicioJornada = LocalTime.parse(partes[2].trim());
                 LocalTime finJornada = LocalTime.parse(partes[3].trim());
 
@@ -67,7 +72,10 @@ public class RepositorioRutas {
         }
     }
 
-    private void reescribirArchivo() {         
+    private void reescribirArchivo() {
+        if (archivo == null) {
+            return;
+        }
         try {
             List<String> lineasAEscribir = new ArrayList<>();
             //Creamos una lista de string para escribir en el archivo de texto
@@ -79,14 +87,7 @@ public class RepositorioRutas {
                     ruta.getFinJornada().toString());
                 lineasAEscribir.add(linea);
             }
-            // StandardOpenOption.CREATE y TRUNCATE_EXISTING limpian el archivo y escriben todo desde cero
-            Files.write(
-                Path.of(ARCHIVO_RUTAS),
-                lineasAEscribir,
-                StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING
-            );            
+            AlmacenArchivo.escribirAtomico(archivo, lineasAEscribir);
         } catch (IOException e) {
             System.err.println("Error al escribir rutas en el archivo: " + e.getMessage());
         }
