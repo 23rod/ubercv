@@ -7,7 +7,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class CuerpoConsultarSaldo extends JPanel {
    private JLabel Saldoactual, HistorialOperaciones;// una etiqueta que nos permita mostrar el texto de "Saldo actual" y otra para "Historial de Saldo"
-   private int Saldo=0; // una variable que mostrara el saldo pero la inicializamos en 0
+   private double Saldo=0; // una variable que mostrara el saldo pero la inicializamos en 0
    private JTable TablaOperaciones;
    private JButton BotonRecargarMonedero;
    private DefaultTableModel FilasDatosOperacion;
@@ -20,7 +20,7 @@ public class CuerpoConsultarSaldo extends JPanel {
 
     // Funcion para manipular el Saldo
 
-   public void AsignarSaldo( int x){ // Esta funcion es para que puedan asignarle un valor de saldo y poder mostrarlo posteriormete
+   public void AsignarSaldo( double x){ // Esta funcion es para que puedan asignarle un valor de saldo y poder mostrarlo posteriormete
     this.Saldo= x;
    }
    //-----------------------------------------
