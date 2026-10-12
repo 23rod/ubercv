@@ -7,7 +7,7 @@ import modelo.Resultado;
 import modelo.Rol;
 import modelo.Usuario;
 import persistencia.memoria.DatosSemilla;
-import persistencia.memoria.RepositorioUsuarios;
+import persistencia.interfaces.IRepositorioUsuarios;
 import utilidades.seguridad.HashClave;
 import utilidades.validadores.Validador;
 
@@ -19,10 +19,10 @@ import utilidades.validadores.Validador;
  */
 public class ServicioUsuarios {
 
-    private final RepositorioUsuarios repositorio;
+    private final IRepositorioUsuarios repositorio;
     private Usuario usuarioSesion; // null = nadie ha iniciado sesión    
 
-    public ServicioUsuarios(RepositorioUsuarios repositorio) {
+    public ServicioUsuarios(IRepositorioUsuarios repositorio) {
         this.repositorio = repositorio;
     }   
 

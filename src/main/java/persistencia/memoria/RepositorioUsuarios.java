@@ -12,8 +12,9 @@ import java.util.Map;
 
 import modelo.Rol;
 import modelo.Usuario;
+import persistencia.interfaces.IRepositorioUsuarios;
 
-public class RepositorioUsuarios {
+public class RepositorioUsuarios implements IRepositorioUsuarios {
 
     private final Map<String, Usuario> usuariosPorCorreo = new LinkedHashMap<>();
     private final Map<String, Usuario> usuariosPorCedula = new LinkedHashMap<>();
@@ -110,6 +111,7 @@ public class RepositorioUsuarios {
         }
     }
 
+    @Override 
     public void guardar(Usuario usuario) {
         if (usuario == null) return;
         usuariosPorCorreo.put(usuario.getCorreo().toLowerCase(), usuario);
@@ -117,29 +119,36 @@ public class RepositorioUsuarios {
         reescribirArchivo();
     }
 
+    @Override
     public void guardarInicial(Usuario usuario) {
         if (usuario == null) return;
         usuariosPorCorreo.put(usuario.getCorreo().toLowerCase(), usuario);
         usuariosPorCedula.put(usuario.getCedula(), usuario);
     }
 
+    @Override
     public Usuario buscarPorCorreo(String correo) {
         return (correo == null) ? null : usuariosPorCorreo.get(correo.trim().toLowerCase());
     }
 
+    @Override
     public Usuario buscarPorCedula(String cedula) {
         return (cedula == null) ? null : usuariosPorCedula.get(cedula.trim());
     }
 
+    @Override
     public boolean existeCorreo(String correo) {
         return (correo != null) && usuariosPorCorreo.containsKey(correo.trim().toLowerCase());
     }
 
+    @Override
     public boolean existeCedula(String cedula) {
         return (cedula != null) && usuariosPorCedula.containsKey(cedula.trim());
     }
 
+    @Override
     public List<Usuario> listar() {
         return new ArrayList<>(usuariosPorCorreo.values());
     }
+    
 }

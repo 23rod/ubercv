@@ -180,9 +180,7 @@ BtnCancelarReservacion.addActionListener(e -> {
         String dato = txtDato.getText(); // Obtenemos el dato del textfield
         
         // Aquí se abre el otro panel
-        JOptionPane.showMessageDialog(this, "Acción confirmada. Dato ingresado: " + dato);
-        // TODO: Código para abrir el siguiente panel
-        
+        JOptionPane.showMessageDialog(this, "Acción confirmada. Dato ingresado: " + dato);        
     } else { 
         // Botón "Negar" (índice 1) o si cierran la ventana con la "X"
         // Simplemente sale del panel sin hacer nada
