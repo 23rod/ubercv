@@ -12,13 +12,13 @@ public class CuerposReservacion extends JPanel {
    private JLabel LabelUnidad, LabelConductor, LabelHora, LabelRuta, LabelTrayecto; 
    private DefaultTableModel FilasDatosOperacion;
    //Asginamos los valores de la reservacion actual
-   public void AgregarDatosReservacionActual(String Placa, String Conductor, String hora, String ruta, String EstadoTrayecto ){
+   public void AgregarDatosReservacionActual(String Placa, String Conductor, String hora, String ruta, String Trayecto ){
 
     LabelUnidad.setText("Unidad Asignada: "+Placa+" ");
     LabelConductor.setText("Conductor: "+Conductor+" ");
     LabelHora.setText("Hora: "+hora+" ");
     LabelRuta.setText("Ruta: "+ruta+" ");
-    LabelTrayecto.setText("Estado: "+EstadoTrayecto+" ");
+    LabelTrayecto.setText("Estado: " + Trayecto+" ");
    }
    // Funcion para Colocar los Valores dentro de la tabla
    public String[] AsignarDatosFila(String Unidad, String Conductor, String hora, String Ruta){
@@ -90,7 +90,7 @@ public class CuerposReservacion extends JPanel {
         LabelHora=new JLabel();
         LabelRuta = new JLabel();
         LabelTrayecto = new JLabel();
-        AgregarDatosReservacionActual("123456", "Javier Balvines o J Balvin", "08:00", "PETARE MANOOO", "ACTIVOOOO"); // estos valores son de ejemplo se pueden modificar despues
+        AgregarDatosReservacionActual("1234556","ARturo","9:00","ExtraUrbana","En parada"); // estos valores son de ejemplo se pueden modificar despues
         FilaSuperior.add(LabelUnidad);
         FilaSuperior.add(Box.createHorizontalGlue()); // para separar del label siguiente
         FilaSuperior.add(LabelConductor);
