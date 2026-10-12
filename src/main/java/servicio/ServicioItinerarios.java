@@ -72,6 +72,7 @@ public class ServicioItinerarios {
         rutas.guardar(new Ruta(nombreNuevo, tipo, Validador.parsearHora(inicio), Validador.parsearHora(fin)));
         for (UnidadTransporte unidad : asignadas) {
             unidad.setNombreRuta(nombreNuevo);
+            unidades.actualizar(unidad); // Persistir el cambio
         }
         return Resultado.exito(null, Mensajes.RUTA_REDEFINIDA); // HU10 escenario 3
     }
@@ -108,9 +109,11 @@ public class ServicioItinerarios {
                 return Resultado.error(Mensajes.CONFIRMAR_CAMBIO); // HU12 escenario 2
             }
             unidad.setNombreRuta(ruta.getNombre());
+            unidades.actualizar(unidad); // Persistir el cambio
             return Resultado.exito(null, Mensajes.UNIDAD_REASIGNADA);
         }
         unidad.setNombreRuta(ruta.getNombre()); // HU12 escenario 1
+        unidades.actualizar(unidad); // Persistir el cambio
         return Resultado.exito(null, Mensajes.UNIDAD_ASIGNADA);
     }
 
@@ -166,6 +169,7 @@ public class ServicioItinerarios {
         }
         boolean habiaConductor = unidad.tieneConductor();
         unidad.setCedulaConductor(conductor.getCedula());
+        unidades.actualizar(unidad); // Persistir el cambio
 
         if (habiaConductor) {
             return Resultado.exito(null, Mensajes.CONDUCTOR_REASIGNADO);

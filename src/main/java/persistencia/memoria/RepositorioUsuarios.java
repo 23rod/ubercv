@@ -1,58 +1,130 @@
 package persistencia.memoria;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import modelo.Usuario;
-
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import modelo.Rol;
+import modelo.Usuario;
 
 public class RepositorioUsuarios {
 
-    // std::unordered_map<std::string, Usuario*>
-    private final Map<String, Usuario> usuariosPorCorreo = new HashMap<>();
-    private final Map<String, Usuario> usuariosPorCedula = new HashMap<>();
+    private final Map<String, Usuario> usuariosPorCorreo = new LinkedHashMap<>();
+    private final Map<String, Usuario> usuariosPorCedula = new LinkedHashMap<>();
 
-    private final static String ARCHIVO_USUARIOS = "memoria/usuariosAlmacenados.txt";
+    private final Path archivo; // null = solo memoria (lo usan las pruebas)
 
+    /** Repositorio solo en memoria: no lee ni escribe archivos. */
     public RepositorioUsuarios() {
-        //Cargar usuarios registrados desde el archivo de texto al iniciar el repositorio
+        this(null);
+    }
+
+    /** Repositorio que guarda en el archivo indicado. Si el archivo no existe, empieza vacío. */
+    public RepositorioUsuarios(Path archivo) {
+        this.archivo = archivo;
         cargarUsuariosDesdeArchivo();
-        
     }
 
     private void cargarUsuariosDesdeArchivo() {
-        // Implementación para cargar usuarios desde un archivo de texto
-        // Este método debería leer un archivo y crear objetos Usuario para agregarlos a los mapas
-        try{
-            List<String> lineas = Files.readAllLines(Path.of(ARCHIVO_USUARIOS), StandardCharsets.UTF_8);
-            for (String linea : lineas) {
-                //Extraemos los datos del usuario del archivo de texto separados por comas
-                String[] partes = linea.split(",");
-                //Creamos el usuario con los datos extraidos del archivo de texto
-                byte [] salBytes = partes[2].getBytes(StandardCharsets.UTF_8);
-                //-------------------------------Correo----------HashClave----------Sal-----------Cedula-------------------Rol--------------------
-                Usuario usuario = new Usuario(partes[0].trim(), partes[1].trim(), salBytes, partes[3].trim(), modelo.Rol.desdeTexto(partes[4].trim()));
-                guardar(usuario);
-            }
-
-        }catch (Exception e) {
-            System.err.println("Error al cargar usuarios desde el archivo: " + e.getMessage());
+        if (archivo == null || !Files.exists(archivo)) {
+            return;
         }
 
+        try {
+            List<String> lineas = Files.readAllLines(archivo, StandardCharsets.UTF_8);
+            for (String linea : lineas) {
+                linea = linea.trim();
+                if (linea.isEmpty() || linea.startsWith("correo,")) {
+                    continue; // Ignorar líneas vacías o cabeceras
+                }
 
+                String[] partes = linea.split(",");
+                
+                // Formato con sal persistida: correo,hashClave,salBase64,cedula,rol
+                if (partes.length == 5) {
+                    String correo = partes[0].trim().toLowerCase();
+                    String hash = partes[1].trim();
+                    byte[] sal;
+                    try {
+                        sal = Base64.getDecoder().decode(partes[2].trim());
+                    } catch (IllegalArgumentException ex) {
+                        sal = new byte[16]; // Fallback si venía corrupta
+                    }
+                    String cedula = partes[3].trim();
+                    Rol rol = leerRol(partes[4]);
+
+                    Usuario usuario = new Usuario(correo, hash, sal, cedula, rol);
+                    usuariosPorCorreo.put(correo, usuario);
+                    usuariosPorCedula.put(cedula, usuario);
+                } 
+                // Compatibilidad con registros viejos de 4 columnas (sin sal explícita)
+                else if (partes.length == 4) {
+                    String correo = partes[0].trim().toLowerCase();
+                    String hash = partes[1].trim();
+                    String cedula = partes[2].trim();
+                    Rol rol = leerRol(partes[3]);
+
+                    Usuario usuario = new Usuario(correo, hash, new byte[16], cedula, rol);
+                    usuariosPorCorreo.put(correo, usuario);
+                    usuariosPorCedula.put(cedula, usuario);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error al cargar usuarios desde el archivo: " + e.getMessage());
+        }
+    }
+
+    /** El archivo guarda el nombre del rol (ADMIN_TRANSPORTE); si no coincide, se prueba con la etiqueta. */
+    private static Rol leerRol(String texto) {
+        Rol rol = AlmacenArchivo.enumONulo(Rol.class, texto);
+        return (rol != null) ? rol : Rol.desdeTexto(texto);
+    }
+
+    private void reescribirArchivo() {
+        if (archivo == null) {
+            return;
+        }
+        try {
+            List<String> lineas = new ArrayList<>();
+            for (Usuario u : usuariosPorCorreo.values()) {
+                String salBase64 = (u.getSal() != null) ? Base64.getEncoder().encodeToString(u.getSal()) : "";
+                String linea = String.format("%s,%s,%s,%s,%s",
+                        u.getCorreo(),
+                        u.getHashClave(),
+                        salBase64,
+                        u.getCedula(),
+                        u.getRol()
+                );
+                lineas.add(linea);
+            }
+
+            AlmacenArchivo.escribirAtomico(archivo, lineas);
+        } catch (IOException e) {
+            System.err.println("Error al reescribir usuarios en archivo: " + e.getMessage());
+        }
     }
 
     public void guardar(Usuario usuario) {
-        usuariosPorCorreo.put(usuario.getCorreo(), usuario);
+        if (usuario == null) return;
+        usuariosPorCorreo.put(usuario.getCorreo().toLowerCase(), usuario);
+        usuariosPorCedula.put(usuario.getCedula(), usuario);
+        reescribirArchivo();
+    }
+
+    public void guardarInicial(Usuario usuario) {
+        if (usuario == null) return;
+        usuariosPorCorreo.put(usuario.getCorreo().toLowerCase(), usuario);
         usuariosPorCedula.put(usuario.getCedula(), usuario);
     }
 
     public Usuario buscarPorCorreo(String correo) {
-        return usuariosPorCorreo.get(correo);
+        return (correo == null) ? null : usuariosPorCorreo.get(correo.trim().toLowerCase());
     }
 
     public Usuario buscarPorCedula(String cedula) {
@@ -60,11 +132,11 @@ public class RepositorioUsuarios {
     }
 
     public boolean existeCorreo(String correo) {
-        return usuariosPorCorreo.containsKey(correo);
+        return (correo != null) && usuariosPorCorreo.containsKey(correo.trim().toLowerCase());
     }
 
     public boolean existeCedula(String cedula) {
-        return usuariosPorCedula.containsKey(cedula);
+        return (cedula != null) && usuariosPorCedula.containsKey(cedula.trim());
     }
 
     public List<Usuario> listar() {

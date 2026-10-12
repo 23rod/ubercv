@@ -90,7 +90,7 @@ public class CuerposReservacion extends JPanel {
         LabelHora=new JLabel();
         LabelRuta = new JLabel();
         LabelTrayecto = new JLabel();
-        AgregarDatosReservacionActual("1234556","ARturo","9:00","ExtraUrbana","En parada"); // estos valores son de ejemplo se pueden modificar despues
+        AgregarDatosReservacionActual("1234556","Arturo","9:00","ExtraUrbana","En parada"); // estos valores son de ejemplo se pueden modificar despues
         FilaSuperior.add(LabelUnidad);
         FilaSuperior.add(Box.createHorizontalGlue()); // para separar del label siguiente
         FilaSuperior.add(LabelConductor);

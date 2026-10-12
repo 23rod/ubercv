@@ -1,1 +1,0 @@
-placa,modelo,capacidad,estado,nombreRuta,cedulaConductor
