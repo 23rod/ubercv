@@ -11,7 +11,8 @@ import modelo.Ruta;
 import modelo.TipoRuta;
 import modelo.UnidadTransporte;
 import modelo.Usuario;
-import servicio.ServicioItinerarios;
+import servicio.ServicioAsignaciones;
+import servicio.ServicioRutas;
 import servicio.ServicioUsuarios;
 import vista.PlantillaVista.PanelGestionRutas;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoRegistroRuta;
@@ -21,12 +22,15 @@ class ControlItinerarios {
 
     private static final DateTimeFormatter HORA = DateTimeFormatter.ofPattern("HH:mm");
 
-    private final ServicioItinerarios servicioItinerarios;
+    private final ServicioRutas servicioRutas;
+    private final ServicioAsignaciones servicioAsignaciones;
     private final ServicioUsuarios servicioUsuarios;
     private final ControlFlota controlFlota; // solo para listar las placas en el panel
 
-    ControlItinerarios(ServicioItinerarios servicioItinerarios, ServicioUsuarios servicioUsuarios, ControlFlota controlFlota) {
-        this.servicioItinerarios = servicioItinerarios;
+    ControlItinerarios(ServicioRutas servicioRutas, ServicioAsignaciones servicioAsignaciones,
+                       ServicioUsuarios servicioUsuarios, ControlFlota controlFlota) {
+        this.servicioRutas = servicioRutas;
+        this.servicioAsignaciones = servicioAsignaciones;
         this.servicioUsuarios = servicioUsuarios;
         this.controlFlota = controlFlota;
     }
@@ -42,7 +46,7 @@ class ControlItinerarios {
 
         // HU10: crear ruta
         cuerpo.getBotonConfirmar().addActionListener(e -> {
-            Resultado<Void> r = servicioItinerarios.crearRuta(
+            Resultado<Void> r = servicioRutas.crearRuta(
                     cuerpo.getcampoNombreRuta().getText(),
                     TipoRuta.desdeTexto(cuerpo.getTipoRutaSeleccionada()),
                     cuerpo.getcampoInicioJornada().getText(),
@@ -56,7 +60,7 @@ class ControlItinerarios {
 
         // HU10: redefinir la ruta elegida con los datos del formulario
         panel.getBotonRedefinir().addActionListener(e -> {
-            Resultado<Void> r = servicioItinerarios.redefinirRuta(
+            Resultado<Void> r = servicioRutas.redefinirRuta(
                     panel.getRutaElegida(),
                     cuerpo.getcampoNombreRuta().getText(),
                     TipoRuta.desdeTexto(cuerpo.getTipoRutaSeleccionada()),
@@ -74,7 +78,7 @@ class ControlItinerarios {
             String placa = panel.getUnidadElegida();
             String ruta = panel.getRutaElegida();
             boolean confirmado = false;
-            if (placa != null && ruta != null && servicioItinerarios.requiereConfirmacion(placa, ruta)) {
+            if (placa != null && ruta != null && servicioAsignaciones.requiereConfirmacion(placa, ruta)) {
                 int opcion = JOptionPane.showConfirmDialog(cuerpo, Mensajes.CONFIRMAR_CAMBIO,
                         "Confirmar cambio", JOptionPane.YES_NO_OPTION);
                 if (opcion != JOptionPane.YES_OPTION) {
@@ -82,7 +86,7 @@ class ControlItinerarios {
                 }
                 confirmado = true;
             }
-            Resultado<Void> r = servicioItinerarios.asignarUnidad(placa, ruta, confirmado);
+            Resultado<Void> r = servicioAsignaciones.asignarUnidad(placa, ruta, confirmado);
             JOptionPane.showMessageDialog(cuerpo, r.getMensaje());
             if (r.isOk()) {
                 refrescar.run();
@@ -95,7 +99,7 @@ class ControlItinerarios {
             String placa = panel.getUnidadElegida();
             String cedulaConductor = panel.getConductorElegido();
 
-            Resultado<Void> r = servicioItinerarios.asignarConductor(
+            Resultado<Void> r = servicioAsignaciones.asignarConductor(
                     cedulaConductor,
                     placa,
                     ruta);
@@ -111,8 +115,8 @@ class ControlItinerarios {
     /** conColumnaConductores: la tabla del admin tiene una sexta columna "Modificar Ruta". */
     void llenarTablaRutas(DefaultTableModel modelo, boolean conColumnaConductores) {
         modelo.setRowCount(0);
-        for (Ruta ruta : servicioItinerarios.listarRutas()) {
-            List<UnidadTransporte> asignadas = servicioItinerarios.unidadesDeRuta(ruta.getNombre());
+        for (Ruta ruta : servicioRutas.listarRutas()) {
+            List<UnidadTransporte> asignadas = servicioAsignaciones.unidadesDeRuta(ruta.getNombre());
             String textoUnidades;
             String textoConductores;
 
@@ -127,7 +131,7 @@ class ControlItinerarios {
                     String cond = unidad.tieneConductor() ? unidad.getCedulaConductor() : "Sin asignar";
                     listaConductores.add(unidad.getPlaca() + ": " + cond);
                 }
-                textoUnidades = String.join(", ", listaPlacas) + " (Cupos: " + servicioItinerarios.cuposDeRuta(ruta.getNombre()) + ")";
+                textoUnidades = String.join(", ", listaPlacas) + " (Cupos: " + servicioAsignaciones.cuposDeRuta(ruta.getNombre()) + ")";
                 textoConductores = String.join(" | ", listaConductores);
             }
 
@@ -152,11 +156,11 @@ class ControlItinerarios {
         if (sesion == null) {
             return;
         }
-        for (UnidadTransporte u : servicioItinerarios.unidadesDeConductor(sesion.getCedula())) {
+        for (UnidadTransporte u : servicioAsignaciones.unidadesDeConductor(sesion.getCedula())) {
             String nombreRuta = u.estaAsignada() ? u.getNombreRuta() : "Sin ruta";
             String horario = "-";
             if (u.estaAsignada()) {
-                for (Ruta r : servicioItinerarios.listarRutas()) {
+                for (Ruta r : servicioRutas.listarRutas()) {
                     if (r.getNombre().equalsIgnoreCase(nombreRuta)) {
                         horario = r.getInicioJornada().format(HORA) + " - " + r.getFinJornada().format(HORA);
                         break;
@@ -182,7 +186,7 @@ class ControlItinerarios {
 
     private List<String> nombresDeRutas() {
         List<String> nombres = new ArrayList<>();
-        for (Ruta ruta : servicioItinerarios.listarRutas()) {
+        for (Ruta ruta : servicioRutas.listarRutas()) {
             nombres.add(ruta.getNombre());
         }
         return nombres;
@@ -190,7 +194,7 @@ class ControlItinerarios {
 
     private List<String> cedulasDeConductores() {
         List<String> cedulas = new ArrayList<>();
-        for (Usuario conductor : servicioItinerarios.listarConductores()) {
+        for (Usuario conductor : servicioAsignaciones.listarConductores()) {
             cedulas.add(conductor.getCedula());
         }
         return cedulas;

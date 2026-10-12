@@ -7,7 +7,7 @@ import modelo.Resultado;
 import modelo.Rol;
 import modelo.Usuario;
 import persistencia.memoria.DatosSemilla;
-import persistencia.memoria.RepositorioUsuarios;
+import persistencia.interfaces.IRepositorioUsuarios;
 import utilidades.seguridad.HashClave;
 import utilidades.validadores.Validador;
 
@@ -17,12 +17,12 @@ import utilidades.validadores.Validador;
  * Lógica de HU01 (registro) y HU02 (inicio de sesión) más la sesión actual.
  * No usa Swing: por eso se puede probar con JUnit sin abrir ninguna ventana.
  */
-public class ServicioUsuarios {
+public class ServicioUsuarios implements Autorizador, ConsultaUsuarios {
 
-    private final RepositorioUsuarios repositorio;
+    private final IRepositorioUsuarios repositorio;
     private Usuario usuarioSesion; // null = nadie ha iniciado sesión    
 
-    public ServicioUsuarios(RepositorioUsuarios repositorio) {
+    public ServicioUsuarios(IRepositorioUsuarios repositorio) {
         this.repositorio = repositorio;
     }   
 
@@ -99,6 +99,7 @@ public class ServicioUsuarios {
     }
 
     /** Control de acceso por rol: los servicios de flota y rutas la usarán para exigir ADMIN_TRANSPORTE. */
+    @Override
     public Resultado<Void> exigirRol(Rol requerido) {
         if (getRolSesion() != requerido) {
             return Resultado.error(Mensajes.ACCESO_DENEGADO);
@@ -106,6 +107,7 @@ public class ServicioUsuarios {
         return Resultado.exito(null, "");
     }
 
+    @Override
     public Usuario buscarPorCedula(String cedula) {
         if (cedula == null) {
             return null;
@@ -113,6 +115,7 @@ public class ServicioUsuarios {
         return repositorio.buscarPorCedula(cedula.trim());
     }
 
+    @Override
     public List<Usuario> listarPorRol(Rol rol) {
         List<Usuario> resultado = new ArrayList<>();
 

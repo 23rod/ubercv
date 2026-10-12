@@ -13,6 +13,9 @@ import modelo.Ruta;
 import modelo.TipoRuta;
 import modelo.UnidadTransporte;
 import modelo.Usuario;
+import persistencia.interfaces.IRepositorioRutas;
+import persistencia.interfaces.IRepositorioUnidades;
+import persistencia.interfaces.IRepositorioUsuarios;
 import utilidades.seguridad.HashClave;
 import utilidades.validadores.Validador;
 
@@ -106,7 +109,7 @@ public class DatosSemilla {
     }
 
     /** Crea las cuentas de demo en el repositorio. */
-    public static void sembrarUsuarios(RepositorioUsuarios repositorio) {
+    public static void sembrarUsuarios(IRepositorioUsuarios repositorio) {
         crear(repositorio, "admin@ucv.com", "12345678", Rol.ADMIN_TRANSPORTE);
         crear(repositorio, "estudiante@ucv.com", "20000001", Rol.ESTUDIANTE);
         crear(repositorio, "empleado@ucv.com", "20000002", Rol.EMPLEADO);
@@ -118,7 +121,7 @@ public class DatosSemilla {
      * Flota y rutas de demo: 3 unidades (una en mantenimiento) y 2 rutas.
      * La unidad ABC123 arranca asignada a "UCV - Altamira" y al conductor 20000003.
      */
-    public static void sembrarFlota(RepositorioUnidades unidades, RepositorioRutas rutas) {
+    public static void sembrarFlota(IRepositorioUnidades unidades, IRepositorioRutas rutas) {
         rutas.guardar(new Ruta("UCV - Altamira", TipoRuta.URBANA, LocalTime.of(6, 0), LocalTime.of(20, 0)));
         rutas.guardar(new Ruta("UCV - Guarenas", TipoRuta.EXTRAURBANA, LocalTime.of(5, 30), LocalTime.of(19, 30)));
 
@@ -130,7 +133,7 @@ public class DatosSemilla {
         unidades.guardar(new UnidadTransporte("GHI789", "Mercedes Benz O500", 45, EstadoUnidad.EN_MANTENIMIENTO));
     }
 
-    private static void crear(RepositorioUsuarios repositorio, String correo, String cedula, Rol rol) {
+    private static void crear(IRepositorioUsuarios repositorio, String correo, String cedula, Rol rol) {
         byte[] sal = HashClave.generarSal();
         String hash = HashClave.hashearClave(CLAVE_DEMO, sal);
         repositorio.guardar(new Usuario(correo, hash, sal, cedula, rol));
