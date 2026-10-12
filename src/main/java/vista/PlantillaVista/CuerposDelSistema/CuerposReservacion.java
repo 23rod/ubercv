@@ -12,13 +12,13 @@ public class CuerposReservacion extends JPanel {
    private JLabel LabelUnidad, LabelConductor, LabelHora, LabelRuta, LabelTrayecto; 
    private DefaultTableModel FilasDatosOperacion;
    //Asginamos los valores de la reservacion actual
-   public void AgregarDatosReservacionActual(String Placa, String Conductor, String hora, String ruta, String Trayecto ){
+   public void AgregarDatosReservacionActual(String Placa, String Conductor, String hora, String ruta, String EstadoTrayecto ){
 
     LabelUnidad.setText("Unidad Asignada: "+Placa+" ");
     LabelConductor.setText("Conductor: "+Conductor+" ");
     LabelHora.setText("Hora: "+hora+" ");
     LabelRuta.setText("Ruta: "+ruta+" ");
-    LabelTrayecto.setText("Estado: " + Trayecto+" ");
+    LabelTrayecto.setText("Estado: "+EstadoTrayecto+" ");
    }
    // Funcion para Colocar los Valores dentro de la tabla
    public String[] AsignarDatosFila(String Unidad, String Conductor, String hora, String Ruta){
