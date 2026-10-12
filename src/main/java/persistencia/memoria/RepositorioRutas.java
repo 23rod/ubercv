@@ -13,15 +13,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import persistencia.interfaces.IRepositorioRutas; // Importante
 
+/** Rutas en memoria. Con una ruta de archivo también las guarda y las recupera entre arranques. */
 public class RepositorioRutas implements IRepositorioRutas {
 
     private final Map<String, Ruta> porNombre = new LinkedHashMap<>();
     private final Path archivo;
 
+    /** Solo en memoria: no lee ni escribe archivos (lo usan las pruebas). */
     public RepositorioRutas() {
         this(null);
     }
 
+    /** Guarda en el archivo indicado. Si el archivo no existe, empieza vacío. */
     public RepositorioRutas(Path archivo) {
         this.archivo = archivo;
         cargarRutasDesdeArchivo();

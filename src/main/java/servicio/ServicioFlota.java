@@ -6,23 +6,23 @@ import modelo.Mensajes;
 import modelo.Resultado;
 import modelo.Rol;
 import modelo.UnidadTransporte;
-import persistencia.memoria.RepositorioUnidades;
+import persistencia.interfaces.IRepositorioUnidades;
 import utilidades.validadores.Validador;
 
 /** HU09: Gestión de Flota (registro de unidades y control de su estado). Solo para ADMIN_TRANSPORTE. */
 public class ServicioFlota {
 
-    private final RepositorioUnidades repositorio;
-    private final ServicioUsuarios usuarios;
+    private final IRepositorioUnidades repositorio;
+    private final Autorizador autorizador;
 
-    public ServicioFlota(RepositorioUnidades repositorio, ServicioUsuarios usuarios) {
+    public ServicioFlota(IRepositorioUnidades repositorio, Autorizador autorizador) {
         this.repositorio = repositorio;
-        this.usuarios = usuarios;
+        this.autorizador = autorizador;
     }
 
     /** La capacidad llega como texto porque es lo que escribe el usuario; aquí se valida y se convierte. */
     public Resultado<Void> registrarUnidad(String placa, String modelo, String capacidad, EstadoUnidad estado) {
-        Resultado<Void> acceso = usuarios.exigirRol(Rol.ADMIN_TRANSPORTE);
+        Resultado<Void> acceso = autorizador.exigirRol(Rol.ADMIN_TRANSPORTE);
         if (!acceso.isOk()) {
             return acceso;
         }
@@ -52,7 +52,7 @@ public class ServicioFlota {
 
     /** Si la unidad deja de estar ACTIVA, se libera de su ruta y de su conductor. */
     public Resultado<Void> cambiarEstado(String placa, EstadoUnidad nuevoEstado) {
-        Resultado<Void> acceso = usuarios.exigirRol(Rol.ADMIN_TRANSPORTE);
+        Resultado<Void> acceso = autorizador.exigirRol(Rol.ADMIN_TRANSPORTE);
         if (!acceso.isOk()) {
             return acceso;
         }
@@ -69,11 +69,9 @@ public class ServicioFlota {
         if (nuevoEstado != EstadoUnidad.ACTIVO) {
             unidad.setNombreRuta(null);
             unidad.setCedulaConductor(null);
-            
-        }        
-        //Modificar la unidad en el archivo de texto (reescribir todo el archivo)
-        repositorio.modificar(unidad, nuevoEstado);
-        
+        }
+        repositorio.actualizar(unidad);
+
         boolean liberada = teniaRuta && nuevoEstado != EstadoUnidad.ACTIVO;
         return Resultado.exito(null, liberada ? Mensajes.ESTADO_ACTUALIZADO_LIBERADA : Mensajes.ESTADO_ACTUALIZADO);
     }

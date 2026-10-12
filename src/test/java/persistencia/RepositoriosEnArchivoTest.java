@@ -14,9 +14,12 @@ import modelo.Usuario;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import persistencia.memoria.DatosSemilla;
 import persistencia.memoria.RepositorioRutas;
 import persistencia.memoria.RepositorioUnidades;
 import persistencia.memoria.RepositorioUsuarios;
+import servicio.ServicioFlota;
+import servicio.ServicioUsuarios;
 
 /** Los repositorios con archivo guardan y recuperan sus datos; las pruebas usan una carpeta temporal. */
 class RepositoriosEnArchivoTest {
@@ -137,5 +140,51 @@ class RepositoriosEnArchivoTest {
         repo.guardar(new UnidadTransporte("ABC123", "Yutong", 40, EstadoUnidad.ACTIVO));
         assertEquals(1, repo.listar().size());
         assertTrue(new RepositorioUnidades().listar().isEmpty()); // otro repositorio en memoria no ve nada
+    }
+
+    @Test
+    @DisplayName("Dado una unidad en una ruta, cuando el servicio la pasa a mantenimiento, entonces el estado y la liberación sobreviven a un reinicio")
+    void cambiarElEstadoDesdeElServicioSePersiste(@TempDir Path carpeta) {
+        Path archivo = carpeta.resolve("unidades.txt");
+        RepositorioUsuarios repoUsuarios = new RepositorioUsuarios();
+        DatosSemilla.sembrarUsuarios(repoUsuarios);
+        ServicioUsuarios usuarios = new ServicioUsuarios(repoUsuarios);
+        usuarios.iniciarSesion("admin@ucv.com", DatosSemilla.CLAVE_DEMO);
+        RepositorioUnidades repo = new RepositorioUnidades(archivo);
+        ServicioFlota flota = new ServicioFlota(repo, usuarios);
+        flota.registrarUnidad("ABC123", "Yutong", "40", EstadoUnidad.ACTIVO);
+        UnidadTransporte unidad = repo.buscarPorPlaca("ABC123");
+        unidad.setNombreRuta("UCV - Altamira");
+        unidad.setCedulaConductor("20000003");
+        repo.actualizar(unidad);
+
+        flota.cambiarEstado("ABC123", EstadoUnidad.EN_MANTENIMIENTO);
+
+        UnidadTransporte leida = new RepositorioUnidades(archivo).buscarPorPlaca("ABC123");
+        assertEquals(EstadoUnidad.EN_MANTENIMIENTO, leida.getEstado());
+        assertFalse(leida.estaAsignada());
+        assertFalse(leida.tieneConductor());
+    }
+
+    @Test
+    @DisplayName("Dado varias unidades, cuando se consulta por ruta o por conductor, entonces solo se devuelven las que corresponden")
+    void lasConsultasPorRutaYPorConductorFiltranBien() {
+        RepositorioUnidades repo = new RepositorioUnidades();
+        UnidadTransporte a = new UnidadTransporte("AAA111", "Modelo", 40, EstadoUnidad.ACTIVO);
+        a.setNombreRuta("UCV - Altamira");
+        a.setCedulaConductor("20000003");
+        UnidadTransporte b = new UnidadTransporte("BBB222", "Modelo", 35, EstadoUnidad.ACTIVO);
+        b.setNombreRuta("ucv - altamira"); // el nombre no distingue mayúsculas
+        UnidadTransporte c = new UnidadTransporte("CCC333", "Modelo", 30, EstadoUnidad.ACTIVO);
+        repo.guardar(a);
+        repo.guardar(b);
+        repo.guardar(c);
+
+        assertEquals(2, repo.listarPorRuta("UCV - Altamira").size());
+        assertEquals(0, repo.listarPorRuta("Otra ruta").size());
+        assertEquals(0, repo.listarPorRuta(null).size());
+        assertEquals(1, repo.listarPorConductor("20000003").size());
+        assertEquals("AAA111", repo.listarPorConductor("20000003").get(0).getPlaca());
+        assertEquals(0, repo.listarPorConductor(null).size());
     }
 }

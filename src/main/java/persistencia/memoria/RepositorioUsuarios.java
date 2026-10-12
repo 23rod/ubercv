@@ -14,6 +14,7 @@ import modelo.Rol;
 import modelo.Usuario;
 import persistencia.interfaces.IRepositorioUsuarios;
 
+/** Usuarios en memoria. Con una ruta de archivo también los guarda y los recupera entre arranques. */
 public class RepositorioUsuarios implements IRepositorioUsuarios {
 
     private final Map<String, Usuario> usuariosPorCorreo = new LinkedHashMap<>();
@@ -22,11 +23,13 @@ public class RepositorioUsuarios implements IRepositorioUsuarios {
     private final Path archivo; // null = solo memoria (lo usan las pruebas)
 
     /** Repositorio solo en memoria: no lee ni escribe archivos. */
+    /** Solo en memoria: no lee ni escribe archivos (lo usan las pruebas). */
     public RepositorioUsuarios() {
         this(null);
     }
 
     /** Repositorio que guarda en el archivo indicado. Si el archivo no existe, empieza vacío. */
+    /** Guarda en el archivo indicado. Si el archivo no existe, empieza vacío. */
     public RepositorioUsuarios(Path archivo) {
         this.archivo = archivo;
         cargarUsuariosDesdeArchivo();
@@ -117,13 +120,6 @@ public class RepositorioUsuarios implements IRepositorioUsuarios {
         usuariosPorCorreo.put(usuario.getCorreo().toLowerCase(), usuario);
         usuariosPorCedula.put(usuario.getCedula(), usuario);
         reescribirArchivo();
-    }
-
-    @Override
-    public void guardarInicial(Usuario usuario) {
-        if (usuario == null) return;
-        usuariosPorCorreo.put(usuario.getCorreo().toLowerCase(), usuario);
-        usuariosPorCedula.put(usuario.getCedula(), usuario);
     }
 
     @Override

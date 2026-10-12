@@ -3,12 +3,16 @@ package controlador;
 import java.nio.file.Path;
 import modelo.Resultado;
 import modelo.Rol;
+import persistencia.interfaces.IRepositorioRutas;
+import persistencia.interfaces.IRepositorioUnidades;
+import persistencia.interfaces.IRepositorioUsuarios;
 import persistencia.memoria.DatosSemilla;
 import persistencia.memoria.RepositorioRutas;
 import persistencia.memoria.RepositorioUnidades;
 import persistencia.memoria.RepositorioUsuarios;
 import servicio.ServicioFlota;
-import servicio.ServicioItinerarios;
+import servicio.ServicioAsignaciones;
+import servicio.ServicioRutas;
 import servicio.ServicioUsuarios;
 
 /**
@@ -26,24 +30,26 @@ public class Control {
 
     public Control() {
         // Los datos se guardan en la carpeta "datos/" (se crea sola; la app se ejecuta desde la raíz del proyecto)
-        RepositorioUsuarios repositorioUsuarios = new RepositorioUsuarios(Path.of("datos", "usuarios.txt"));
+        IRepositorioUsuarios repositorioUsuarios = new RepositorioUsuarios(Path.of("datos", "usuarios.txt"));
         if (repositorioUsuarios.listar().isEmpty()) {
             DatosSemilla.sembrarUsuarios(repositorioUsuarios); // cuentas de demo, solo en el primer arranque
         }
         ServicioUsuarios servicioUsuarios = new ServicioUsuarios(repositorioUsuarios);
 
-        RepositorioUnidades repositorioUnidades = new RepositorioUnidades(Path.of("datos", "unidades.txt"));
-        RepositorioRutas repositorioRutas = new RepositorioRutas(Path.of("datos", "rutas.txt"));
+        IRepositorioUnidades repositorioUnidades = new RepositorioUnidades(Path.of("datos", "unidades.txt"));
+        IRepositorioRutas repositorioRutas = new RepositorioRutas(Path.of("datos", "rutas.txt"));
         if (repositorioUnidades.listar().isEmpty() && repositorioRutas.listar().isEmpty()) {
             DatosSemilla.sembrarFlota(repositorioUnidades, repositorioRutas); // unidades y rutas de demo, solo en el primer arranque
         }
         ServicioFlota servicioFlota = new ServicioFlota(repositorioUnidades, servicioUsuarios);
-        ServicioItinerarios servicioItinerarios = new ServicioItinerarios(repositorioRutas, repositorioUnidades, servicioUsuarios);
+        ServicioRutas servicioRutas = new ServicioRutas(repositorioRutas, repositorioUnidades, servicioUsuarios);
+        ServicioAsignaciones servicioAsignaciones =
+                new ServicioAsignaciones(repositorioRutas, repositorioUnidades, servicioUsuarios, servicioUsuarios);
 
         Navegador navegador = new Navegador();
         this.controlSesion = new ControlSesion(servicioUsuarios, navegador, this);
         ControlFlota controlFlota = new ControlFlota(servicioFlota);
-        ControlItinerarios controlItinerarios = new ControlItinerarios(servicioItinerarios, servicioUsuarios, controlFlota);
+        ControlItinerarios controlItinerarios = new ControlItinerarios(servicioRutas, servicioAsignaciones, servicioUsuarios, controlFlota);
         this.controlPrincipal = new ControlPrincipal(servicioUsuarios, navegador, controlSesion, controlFlota, controlItinerarios);
     }
 

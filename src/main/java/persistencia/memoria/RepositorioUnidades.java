@@ -12,14 +12,17 @@ import modelo.UnidadTransporte;
 import modelo.EstadoUnidad;
 import persistencia.interfaces.IRepositorioUnidades; // Importante
 
+/** Unidades en memoria. Con una ruta de archivo también las guarda y las recupera entre arranques. */
 public class RepositorioUnidades implements IRepositorioUnidades {
     private final Path archivo;
     private final Map<String, UnidadTransporte> porPlaca = new LinkedHashMap<>();
 
+    /** Solo en memoria: no lee ni escribe archivos (lo usan las pruebas). */
     public RepositorioUnidades() {
         this(null);
     }
 
+    /** Guarda en el archivo indicado. Si el archivo no existe, empieza vacío. */
     public RepositorioUnidades(Path archivo) {
         this.archivo = archivo;
         cargarUnidadesDesdeArchivo();
@@ -112,23 +115,6 @@ public class RepositorioUnidades implements IRepositorioUnidades {
     }
 
     @Override
-    public void modificar(UnidadTransporte unidad, EstadoUnidad nuevoEstado) {
-        if (unidad == null || !existePlaca(unidad.getPlaca())) {
-            System.err.println("La unidad no existe en el repositorio.");
-            return;
-        }
-
-        unidad.setEstado(nuevoEstado);
-        if (nuevoEstado != EstadoUnidad.ACTIVO) {
-            unidad.setNombreRuta(null);
-            unidad.setCedulaConductor(null);
-        }
-
-        porPlaca.put(unidad.getPlaca().trim().toUpperCase(), unidad);
-        reescribirArchivo();
-    }
-
-    @Override
     public void actualizar(UnidadTransporte unidad) {
         guardar(unidad);
     }
@@ -146,5 +132,33 @@ public class RepositorioUnidades implements IRepositorioUnidades {
     @Override
     public List<UnidadTransporte> listar() {
         return new ArrayList<>(porPlaca.values());
+    }
+
+    @Override
+    public List<UnidadTransporte> listarPorRuta(String nombreRuta) {
+        List<UnidadTransporte> resultado = new ArrayList<>();
+        if (nombreRuta == null) {
+            return resultado;
+        }
+        for (UnidadTransporte unidad : porPlaca.values()) {
+            if (unidad.estaAsignada() && unidad.getNombreRuta().equalsIgnoreCase(nombreRuta.trim())) {
+                resultado.add(unidad);
+            }
+        }
+        return resultado;
+    }
+
+    @Override
+    public List<UnidadTransporte> listarPorConductor(String cedulaConductor) {
+        List<UnidadTransporte> resultado = new ArrayList<>();
+        if (cedulaConductor == null) {
+            return resultado;
+        }
+        for (UnidadTransporte unidad : porPlaca.values()) {
+            if (unidad.tieneConductor() && unidad.getCedulaConductor().equals(cedulaConductor.trim())) {
+                resultado.add(unidad);
+            }
+        }
+        return resultado;
     }
 }
