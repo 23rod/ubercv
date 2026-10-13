@@ -130,8 +130,8 @@ public class VentanaInicioSesion extends JFrame {
         final char defaultEchoChar = contrasenaUsuarioField.getEchoChar();
 
         // Cargar iconos
-        ImageIcon iconoAbierto = new ImageIcon(getClass().getResource("/vista/PlantillaVista/ImagenesDeInicio/ojo.png"));
-        ImageIcon iconoCerrado = new ImageIcon(getClass().getResource("/vista/PlantillaVista/ImagenesDeInicio/ojo-cerrado.png"));
+        ImageIcon iconoAbierto = new ImageIcon("src/main/java/vista/PlantillaVista/ImagenesDeInicio/ojo.png");
+        ImageIcon iconoCerrado = new ImageIcon("src/main/java/vista/PlantillaVista/ImagenesDeInicio/ojo-cerrado.png");
         // Crear el botón toggle (texto del ojo)
         // Crear el botón toggle (texto del ojo)
         JToggleButton toggleButton = new JToggleButton(iconoCerrado);        
