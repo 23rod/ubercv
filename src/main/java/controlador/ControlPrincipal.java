@@ -11,6 +11,7 @@ import vista.PlantillaVista.VistaConcreta;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoFuncionesAdmin;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoFuncionesConductor;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoFuncionesUsuario;
+import vista.PlantillaVista.CuerposDelSistema.CuerpoGestionTarifas;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoRegistroRuta;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoRegistroUnidad;
 
@@ -25,14 +26,16 @@ class ControlPrincipal {
     private final ControlSesion controlSesion;
     private final ControlFlota controlFlota;
     private final ControlItinerarios controlItinerarios;
+    private final ControlTarifas controlTarifas;
 
     ControlPrincipal(ServicioUsuarios servicioUsuarios, Navegador navegador, ControlSesion controlSesion,
-                     ControlFlota controlFlota, ControlItinerarios controlItinerarios) {
+                     ControlFlota controlFlota, ControlItinerarios controlItinerarios, ControlTarifas controlTarifas) {
         this.servicioUsuarios = servicioUsuarios;
         this.navegador = navegador;
         this.controlSesion = controlSesion;
         this.controlFlota = controlFlota;
         this.controlItinerarios = controlItinerarios;
+        this.controlTarifas = controlTarifas;
     }
 
     /** HU02: tras iniciar sesión, la pantalla depende del rol. */
@@ -70,7 +73,7 @@ class ControlPrincipal {
         navegador.mostrar(vista);
     }
 
-    /** Menú del admin: Flota e Itinerarios (solo ADMIN_TRANSPORTE). */
+    /** Menú del admin: Flota, Itinerarios y Tarifas (solo ADMIN_TRANSPORTE). */
     private void conectarMenuAdmin(VistaConcreta vista, CuerpoFuncionesAdmin menu) {
         Runnable volverAlMenu = () -> vista.mostrarCuerpo(menu);
 
@@ -88,6 +91,13 @@ class ControlPrincipal {
                 PanelGestionRutas panel = new PanelGestionRutas();
                 controlItinerarios.conectar(cuerpo, panel);
                 vista.mostrarCuerpo(navegador.conBotonVolver("Control de Itinerarios", cuerpo, panel, volverAlMenu));
+            }
+        });
+        menu.getBotonTarifas().addActionListener(e -> {
+            if (accesoAdmin(vista)) {
+                CuerpoGestionTarifas cuerpo = new CuerpoGestionTarifas();
+                controlTarifas.conectar(cuerpo);
+                vista.mostrarCuerpo(navegador.conBotonVolver("Gestión de Tarifas", cuerpo, null, volverAlMenu));
             }
         });
     }

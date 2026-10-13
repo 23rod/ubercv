@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import persistencia.memoria.DatosSemilla;
 import persistencia.memoria.RepositorioRutas;
+import persistencia.memoria.RepositorioTarifas;
 import persistencia.memoria.RepositorioUnidades;
 import persistencia.memoria.RepositorioUsuarios;
 
@@ -19,6 +20,7 @@ import persistencia.memoria.RepositorioUsuarios;
 class ServicioRutasTest {
 
     private RepositorioRutas repoRutas;
+    private RepositorioTarifas repoTarifas;
     private ServicioUsuarios usuarios;
     private ServicioFlota flota;
     private ServicioRutas rutas;
@@ -32,7 +34,8 @@ class ServicioRutasTest {
         RepositorioUnidades repoUnidades = new RepositorioUnidades();
         repoRutas = new RepositorioRutas();
         flota = new ServicioFlota(repoUnidades, usuarios);
-        rutas = new ServicioRutas(repoRutas, repoUnidades, usuarios);
+        repoTarifas = new RepositorioTarifas();
+        rutas = new ServicioRutas(repoRutas, repoUnidades, repoTarifas, usuarios);
         asignaciones = new ServicioAsignaciones(repoRutas, repoUnidades, usuarios, usuarios);
         usuarios.iniciarSesion("admin@ucv.com", DatosSemilla.CLAVE_DEMO);
     }
@@ -149,5 +152,16 @@ class ServicioRutasTest {
         assertTrue(rutas.crearRuta(justo, TipoRuta.URBANA, "06:00", "20:00").isOk());
         assertEquals(Mensajes.NOMBRE_RUTA_LARGO, rutas.crearRuta(largo, TipoRuta.URBANA, "06:00", "20:00").getMensaje());
         assertEquals(Mensajes.NOMBRE_RUTA_LARGO, rutas.redefinirRuta(justo, largo, TipoRuta.URBANA, "06:00", "20:00").getMensaje());
+    }
+
+    @Test
+    void alRenombrarUnaRutaSuTarifaLaSigue() {
+        rutas.crearRuta("Ruta Ex", TipoRuta.EXTRAURBANA, "06:00", "20:00");
+        repoTarifas.guardarTarifaBase("Ruta Ex", new java.math.BigDecimal("12.50"));
+
+        rutas.redefinirRuta("Ruta Ex", "Ruta Ex Nueva", TipoRuta.EXTRAURBANA, "06:00", "20:00");
+
+        assertEquals(new java.math.BigDecimal("12.50"), repoTarifas.obtenerTarifaBase("Ruta Ex Nueva"));
+        assertNull(repoTarifas.obtenerTarifaBase("Ruta Ex"));
     }
 }

@@ -20,4 +20,10 @@ class RolTest {
         assertEquals(Rol.NINGUNO, Rol.desdeTexto(null));
         assertEquals(Rol.NINGUNO, Rol.desdeTexto("Piloto"));
     }
+
+    @Test
+    void elPublicoGeneralSeTraduceConOSinAcento() {
+        assertEquals(Rol.PUBLICO_GENERAL, Rol.desdeTexto("Público General"));
+        assertEquals(Rol.PUBLICO_GENERAL, Rol.desdeTexto("publico general"));
+    }
 }

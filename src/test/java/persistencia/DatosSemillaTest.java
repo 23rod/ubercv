@@ -25,6 +25,7 @@ class DatosSemillaTest {
         assertEquals(Rol.ESTUDIANTE, servicio.iniciarSesion("estudiante@ucv.com", DatosSemilla.CLAVE_DEMO).getValor());
         assertEquals(Rol.EMPLEADO, servicio.iniciarSesion("empleado@ucv.com", DatosSemilla.CLAVE_DEMO).getValor());
         assertEquals(Rol.CONDUCTOR, servicio.iniciarSesion("conductor@ucv.com", DatosSemilla.CLAVE_DEMO).getValor());
+        assertEquals(Rol.PUBLICO_GENERAL, servicio.iniciarSesion("publico@ucv.com", DatosSemilla.CLAVE_DEMO).getValor());
     }
 
     @Test

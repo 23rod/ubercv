@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import persistencia.memoria.DatosSemilla;
 import persistencia.memoria.RepositorioRutas;
+import persistencia.memoria.RepositorioTarifas;
 import persistencia.memoria.RepositorioUnidades;
 import persistencia.memoria.RepositorioUsuarios;
 
@@ -32,7 +33,7 @@ class ServicioAsignacionesTest {
         RepositorioUnidades repoUnidades = new RepositorioUnidades();
         repoRutas = new RepositorioRutas();
         flota = new ServicioFlota(repoUnidades, usuarios);
-        rutas = new ServicioRutas(repoRutas, repoUnidades, usuarios);
+        rutas = new ServicioRutas(repoRutas, repoUnidades, new RepositorioTarifas(), usuarios);
         asignaciones = new ServicioAsignaciones(repoRutas, repoUnidades, usuarios, usuarios);
         usuarios.iniciarSesion("admin@ucv.com", DatosSemilla.CLAVE_DEMO);
     }

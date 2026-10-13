@@ -59,4 +59,20 @@ public class Mensajes {
     public static final String USUARIO_NO_ES_CONDUCTOR = "El usuario seleccionado no tiene rol de Conductor";
     public static final String UNIDAD_SIN_RUTA = "La unidad debe estar asignada a una ruta antes de asignarle un conductor";
     public static final String UNIDAD_NO_PERTENECE_RUTA = "La unidad seleccionada no pertenece a la ruta elegida";
+
+    // HU11 - Configuración de tarifas
+    public static final String TARIFA_REGISTRADA = "Tarifa registrada correctamente";
+    public static final String TARIFA_ACTUALIZADA = "Tarifa actualizada correctamente";
+    public static final String TARIFA_INVALIDA = "La tarifa base debe ser un número mayor que cero, con hasta dos decimales";
+    public static final String TARIFA_YA_REGISTRADA = "La ruta ya tiene una tarifa; use Actualizar Tarifa";
+    public static final String TARIFA_NO_REGISTRADA = "La ruta aún no tiene tarifa; use Guardar Tarifa";
+    public static final String SIN_RUTAS_EXTRAURBANAS = "No hay rutas extraurbanas registradas";
+    public static final String RUTA_REQUERIDA = "Seleccione una ruta";
+    public static final String RUTA_NO_EXTRAURBANA = "La tarifa solo se configura para rutas extraurbanas";
+    public static final String PORCENTAJE_ACTUALIZADO = "Porcentaje actualizado correctamente";
+    public static final String PORCENTAJE_INVALIDO = "El porcentaje debe ser un número con hasta dos decimales";
+    /** Se usa con String.format: tipo de usuario, mínimo y máximo. */
+    public static final String PORCENTAJE_FUERA_DE_RANGO = "El porcentaje para %s debe estar entre %s y %s";
+    public static final String PORCENTAJE_PUBLICO_FIJO = "El porcentaje del público general es fijo (100 %)";
+    public static final String ROL_SIN_TARIFA = "Este tipo de usuario no tiene tarifa configurable";
 }
