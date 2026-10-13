@@ -9,19 +9,23 @@ import modelo.Ruta;
 import modelo.TipoRuta;
 import modelo.UnidadTransporte;
 import persistencia.interfaces.IRepositorioRutas;
+import persistencia.interfaces.IRepositorioTarifas;
 import persistencia.interfaces.IRepositorioUnidades;
 import utilidades.validadores.Validador;
 
-/** HU10: definir y redefinir rutas y horarios. Solo para ADMIN_TRANSPORTE. */
+/** HU10: definir y redefinir rutas y horarios. Solo para ADMIN_TRANSPORTE. Si una ruta cambia de nombre, sus unidades y su tarifa la siguen. */
 public class ServicioRutas {
 
     private final IRepositorioRutas rutas;
     private final IRepositorioUnidades unidades;
+    private final IRepositorioTarifas tarifas; // la tarifa de una ruta la sigue si la ruta cambia de nombre
     private final Autorizador autorizador;
 
-    public ServicioRutas(IRepositorioRutas rutas, IRepositorioUnidades unidades, Autorizador autorizador) {
+    public ServicioRutas(IRepositorioRutas rutas, IRepositorioUnidades unidades,
+                         IRepositorioTarifas tarifas, Autorizador autorizador) {
         this.rutas = rutas;
         this.unidades = unidades;
+        this.tarifas = tarifas;
         this.autorizador = autorizador;
     }
 
@@ -66,6 +70,9 @@ public class ServicioRutas {
         for (UnidadTransporte unidad : asignadas) {
             unidad.setNombreRuta(nombreNuevo);
             unidades.actualizar(unidad);
+        }
+        if (cambiaElNombre) {
+            tarifas.moverTarifaBase(actual.getNombre(), nombreNuevo);
         }
         return Resultado.exito(null, Mensajes.RUTA_REDEFINIDA); // HU10 escenario 3
     }

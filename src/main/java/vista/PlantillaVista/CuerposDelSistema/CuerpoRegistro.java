@@ -54,7 +54,7 @@ public class CuerpoRegistro extends JPanel {
         
         // Creacion del placeholder roles
         JLabel rolesLabel = new JLabel("Defina su rol:");
-        String[] roles = {"Ninguno", "Estudiante", "Empleado", "Conductor", "Admin de Transporte"};
+        String[] roles = {"Ninguno", "Estudiante", "Empleado", "Conductor", "Admin de Transporte", "Público General"};
         plegableRoles = new JComboBox<>(roles);
         JPanel panelPlegableRoles = CrearSubPanel.subPanel();
         panelPlegableRoles.add(rolesLabel);
@@ -85,8 +85,8 @@ public class CuerpoRegistro extends JPanel {
         final char defaultEchoChar = campoContrasenia.getEchoChar();
 
         // Cargar iconos
-        ImageIcon iconoAbierto = new ImageIcon("src/main/java/vista/PlantillaVista/ImagenesDeInicio/ojo.png");
-        ImageIcon iconoCerrado = new ImageIcon("src/main/java/vista/PlantillaVista/ImagenesDeInicio/ojo-cerrado.png");
+        ImageIcon iconoAbierto = new ImageIcon(getClass().getResource("/vista/PlantillaVista/ImagenesDeInicio/ojo.png"));
+        ImageIcon iconoCerrado = new ImageIcon(getClass().getResource("/vista/PlantillaVista/ImagenesDeInicio/ojo-cerrado.png"));
         
         // Crear el botón toggle (texto del ojo)
         JToggleButton toggleButton = new JToggleButton(iconoCerrado);        

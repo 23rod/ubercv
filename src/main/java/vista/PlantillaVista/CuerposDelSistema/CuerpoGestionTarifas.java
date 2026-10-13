@@ -111,4 +111,19 @@ public class CuerpoGestionTarifas extends JPanel{
     public DefaultTableModel getModeloTablaRutas(){
         return filasTablaRutas;
     }
+    // Lo llama el controlador para listar las rutas extraurbanas; conserva la ruta elegida si sigue existiendo
+    public void actualizarRutas(java.util.List<String> nombres){
+        Object elegida = plegableRuta.getSelectedItem();
+        plegableRuta.removeAllItems();
+        if (nombres.isEmpty()) {
+            plegableRuta.addItem("Ninguna");
+            return;
+        }
+        for (String nombre : nombres) {
+            plegableRuta.addItem(nombre);
+        }
+        if (elegida != null && nombres.contains(elegida)) {
+            plegableRuta.setSelectedItem(elegida);
+        }
+    }
 }

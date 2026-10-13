@@ -5,6 +5,7 @@ public enum Rol {
     EMPLEADO,
     CONDUCTOR,
     ADMIN_TRANSPORTE,
+    PUBLICO_GENERAL,
     NINGUNO;
 
     /**
@@ -24,6 +25,9 @@ public enum Rol {
                 return CONDUCTOR;
             case "admin de transporte":
                 return ADMIN_TRANSPORTE;
+            case "público general":
+            case "publico general":
+                return PUBLICO_GENERAL;
             default:
                 return NINGUNO;
         }

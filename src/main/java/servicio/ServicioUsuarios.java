@@ -59,8 +59,11 @@ public class ServicioUsuarios implements Autorizador, ConsultaUsuarios {
         if (repositorio.existeCorreo(correoNorm) || repositorio.existeCedula(cedulaNorm)) {
             return Resultado.error(Mensajes.USUARIO_EXISTENTE);
         }
-        // 5) El rol elegido debe coincidir con el padrón (HU01 escenario 5)
-        if (DatosSemilla.validarEnPadron(cedulaNorm) != rol) {
+        // 5) El rol elegido debe coincidir con el padrón (HU01 escenario 5).
+        //    El público general es externo a la universidad: solo puede registrarse quien NO está en el padrón.
+        Rol rolEnPadron = DatosSemilla.validarEnPadron(cedulaNorm);
+        boolean coincide = (rol == Rol.PUBLICO_GENERAL) ? (rolEnPadron == Rol.NINGUNO) : (rolEnPadron == rol);
+        if (!coincide) {
             return Resultado.error(Mensajes.ROL_NO_COINCIDE);
         }
 

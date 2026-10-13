@@ -211,4 +211,35 @@ class ServicioUsuariosTest {
         assertFalse(r.getMensaje().contains(Mensajes.DETALLE_CEDULA));
         assertFalse(r.getMensaje().contains(Mensajes.DETALLE_CLAVE));
     }
+
+    // ------------------------------------------------------------ Público General (externo a la universidad)
+    @Test
+    void elPublicoGeneralSePuedeRegistrarSiSuCedulaNoEstaEnElPadron() {
+        Resultado<Void> r = servicio.registrar("externo@correo.com", "Clave1234", "Clave1234", "30000005", Rol.PUBLICO_GENERAL);
+        assertTrue(r.isOk());
+        assertEquals(Mensajes.REGISTRO_EXITOSO, r.getMensaje());
+        assertEquals(Rol.PUBLICO_GENERAL, repositorio.buscarPorCorreo("externo@correo.com").getRol());
+    }
+
+    @Test
+    void elPublicoGeneralNoPuedeUsarUnaCedulaQueEstaEnElPadron() {
+        Resultado<Void> r = servicio.registrar("ana@ucv.com", "Clave1234", "Clave1234", "10000001", Rol.PUBLICO_GENERAL);
+        assertFalse(r.isOk());
+        assertEquals(Mensajes.ROL_NO_COINCIDE, r.getMensaje());
+    }
+
+    @Test
+    void unaCedulaFueraDelPadronSigueSinPoderRegistrarseComoEstudiante() {
+        Resultado<Void> r = servicio.registrar("externo@correo.com", "Clave1234", "Clave1234", "30000005", Rol.ESTUDIANTE);
+        assertFalse(r.isOk());
+        assertEquals(Mensajes.ROL_NO_COINCIDE, r.getMensaje());
+    }
+
+    @Test
+    void elPublicoGeneralIniciaSesionConSuRol() {
+        servicio.registrar("externo@correo.com", "Clave1234", "Clave1234", "30000005", Rol.PUBLICO_GENERAL);
+        Resultado<Rol> login = servicio.iniciarSesion("externo@correo.com", "Clave1234");
+        assertTrue(login.isOk());
+        assertEquals(Rol.PUBLICO_GENERAL, login.getValor());
+    }
 }

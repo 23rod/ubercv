@@ -115,6 +115,7 @@ public class DatosSemilla {
         crear(repositorio, "empleado@ucv.com", "20000002", Rol.EMPLEADO);
         crear(repositorio, "conductor@ucv.com", "20000003", Rol.CONDUCTOR);
         crear(repositorio, "conductor2@ucv.com", "20000004", Rol.CONDUCTOR);
+        crear(repositorio, "publico@ucv.com", "30000001", Rol.PUBLICO_GENERAL); // externo: no está en el padrón
     }
 
     /**
