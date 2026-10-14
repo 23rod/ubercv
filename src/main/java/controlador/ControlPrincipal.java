@@ -12,6 +12,7 @@ import vista.PlantillaVista.CuerposDelSistema.CuerpoFuncionesAdmin;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoFuncionesConductor;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoFuncionesUsuario;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoGestionTarifas;
+import vista.PlantillaVista.CuerposDelSistema.CuerpoRecargasAdmin;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoRegistroRuta;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoRegistroUnidad;
 
@@ -27,15 +28,20 @@ class ControlPrincipal {
     private final ControlFlota controlFlota;
     private final ControlItinerarios controlItinerarios;
     private final ControlTarifas controlTarifas;
+    private final ControlRecargas controlRecargas;
+    private final ControlMonedero controlMonedero;
 
     ControlPrincipal(ServicioUsuarios servicioUsuarios, Navegador navegador, ControlSesion controlSesion,
-                     ControlFlota controlFlota, ControlItinerarios controlItinerarios, ControlTarifas controlTarifas) {
+                     ControlFlota controlFlota, ControlItinerarios controlItinerarios, ControlTarifas controlTarifas,
+                     ControlRecargas controlRecargas, ControlMonedero controlMonedero) {
         this.servicioUsuarios = servicioUsuarios;
         this.navegador = navegador;
         this.controlSesion = controlSesion;
         this.controlFlota = controlFlota;
         this.controlItinerarios = controlItinerarios;
         this.controlTarifas = controlTarifas;
+        this.controlRecargas = controlRecargas;
+        this.controlMonedero = controlMonedero;
     }
 
     /** HU02: tras iniciar sesión, la pantalla depende del rol. */
@@ -47,6 +53,7 @@ class ControlPrincipal {
         }
 
         CuerpoFuncionesAdmin menuAdmin = null;
+        CuerpoFuncionesUsuario menuPasajero = null;
         JPanel cuerpo;
         switch (rol) {
             case ADMIN_TRANSPORTE:
@@ -58,10 +65,10 @@ class ControlPrincipal {
                 controlItinerarios.llenarTablaConductor(menuConductor.getModeloTablaUnidades());
                 cuerpo = menuConductor;
                 break;
-            default: // ESTUDIANTE y EMPLEADO
-                CuerpoFuncionesUsuario menuUsuario = new CuerpoFuncionesUsuario();
-                controlItinerarios.llenarTablaRutas(menuUsuario.getModeloTablaRutas(), false);
-                cuerpo = menuUsuario;
+            default: // ESTUDIANTE, EMPLEADO y PUBLICO_GENERAL
+                menuPasajero = new CuerpoFuncionesUsuario();
+                controlItinerarios.llenarTablaRutas(menuPasajero.getModeloTablaRutas(), false);
+                cuerpo = menuPasajero;
         }
 
         VistaConcreta vista = new VistaConcreta(cuerpo);
@@ -70,10 +77,13 @@ class ControlPrincipal {
         if (menuAdmin != null) {
             conectarMenuAdmin(vista, menuAdmin);
         }
+        if (menuPasajero != null) {
+            conectarMenuPasajero(vista, menuPasajero);
+        }
         navegador.mostrar(vista);
     }
 
-    /** Menú del admin: Flota, Itinerarios y Tarifas (solo ADMIN_TRANSPORTE). */
+    /** Menú del admin: Flota, Itinerarios, Tarifas y Recargas de Monedero (solo ADMIN_TRANSPORTE). */
     private void conectarMenuAdmin(VistaConcreta vista, CuerpoFuncionesAdmin menu) {
         Runnable volverAlMenu = () -> vista.mostrarCuerpo(menu);
 
@@ -100,6 +110,18 @@ class ControlPrincipal {
                 vista.mostrarCuerpo(navegador.conBotonVolver("Gestión de Tarifas", cuerpo, null, volverAlMenu));
             }
         });
+        menu.getBotonRecargas().addActionListener(e -> {
+            if (accesoAdmin(vista)) {
+                CuerpoRecargasAdmin cuerpo = new CuerpoRecargasAdmin();
+                controlRecargas.conectarAdmin(cuerpo);
+                vista.mostrarCuerpo(navegador.conBotonVolver("Recargas de Monedero por Usuario", cuerpo, null, volverAlMenu));
+            }
+        });
+    }
+
+    /** Menú del pasajero: Monedero Virtual (saldo, historial y recarga por pago móvil). */
+    private void conectarMenuPasajero(VistaConcreta vista, CuerpoFuncionesUsuario menu) {
+        menu.getBotonMonederoVirtual().addActionListener(e -> controlMonedero.abrir(vista, () -> vista.mostrarCuerpo(menu)));
     }
 
     private boolean accesoAdmin(VistaConcreta vista) {

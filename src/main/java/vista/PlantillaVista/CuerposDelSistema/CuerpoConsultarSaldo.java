@@ -22,6 +22,19 @@ public class CuerpoConsultarSaldo extends JPanel {
 
    public void AsignarSaldo( double x){ // Esta funcion es para que puedan asignarle un valor de saldo y poder mostrarlo posteriormete
     this.Saldo= x;
+    mostrarSaldo(String.valueOf(x));
+   }
+
+   // Muestra el saldo ya formateado por el controlador (por ejemplo "125.50"). Actualiza la etiqueta que ve el usuario.
+   public void mostrarSaldo(String saldoFormateado){
+    if (Saldoactual != null) {
+        Saldoactual.setText("Saldo Actual: " + saldoFormateado + "   ");
+    }
+   }
+
+   // Para que el controlador llene el historial de operaciones
+   public DefaultTableModel getModeloTablaOperaciones(){
+    return FilasDatosOperacion;
    }
    //-----------------------------------------
    //OPERACIONES PARA EL LLENADO DEL HISTORIAL
@@ -69,7 +82,7 @@ public class CuerpoConsultarSaldo extends JPanel {
 
             // Realizamos el label para mostrar el Saldo Actual
 
-              Saldoactual= new JLabel("Saldo Acutal: " + Saldo+"   "); // Aparecera en la ventana  como "Saldo Actual: n" donde hasta que no pongan llamen a la funcion la variable sera 0
+              Saldoactual= new JLabel("Saldo Actual: " + Saldo+"   "); // Aparecera en la ventana  como "Saldo Actual: n" donde hasta que no pongan llamen a la funcion la variable sera 0
             
             // Añadimos el boton y el Label
              PanelSuperior.add(BotonRecargarMonedero);
@@ -85,17 +98,13 @@ public class CuerpoConsultarSaldo extends JPanel {
 
         // creamos la tabla que contiene la parte de las operaciones
 
-        String[]nombreColumnas={"Dia", "Hora", "Telefono Emisor", "Numero de referencia", "Monto"}; // las columnas
-        String[]ValoresFila =AsignarDatosFila("Lunes","03:04","0424123456","245879613","10.000$"); // aqui tendrian que poner las variables correspondientes 
+        String[]nombreColumnas={"Dia", "Hora", "Tipo", "Detalle", "Monto"}; // las columnas
         FilasDatosOperacion = new DefaultTableModel(nombreColumnas,0){ // Se editan las cantidad de filas
             @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
             public boolean isCellEditable(int row, int column) {
             return false;
             }
         };
-         if( ValidadDatosFila(ValoresFila)){
-              FilasDatosOperacion.addRow(ValoresFila); // si estan los datos de la operacion la añadimos las filas
-        }
         TablaOperaciones = new JTable(FilasDatosOperacion);
         TablaOperaciones.setRowHeight(30);
         TablaOperaciones.getTableHeader().setReorderingAllowed(false);

@@ -70,6 +70,55 @@ public class ServicioTarifas {
         if (!acceso.isOk()) {
             return acceso;
         }
+        Resultado<BigDecimal> valor = validarPorcentaje(rol, porcentaje);
+        if (!valor.isOk()) {
+            return Resultado.error(valor.getMensaje());
+        }
+        tarifas.guardarPorcentaje(rol, valor.getValor());
+        return Resultado.exito(null, Mensajes.PORCENTAJE_ACTUALIZADO);
+    }
+
+    /**
+     * Cambia a la vez los porcentajes de Estudiantes y Empleados (un campo en blanco significa "dejar como está").
+     * Se valida todo antes de guardar: si uno de los dos es inválido no se guarda ninguno.
+     */
+    public Resultado<Void> configurarPorcentajes(String estudiante, String empleado) {
+        Resultado<Void> acceso = autorizador.exigirRol(Rol.ADMIN_TRANSPORTE);
+        if (!acceso.isOk()) {
+            return acceso;
+        }
+        boolean hayEstudiante = Validador.esTextoNoVacio(estudiante);
+        boolean hayEmpleado = Validador.esTextoNoVacio(empleado);
+        if (!hayEstudiante && !hayEmpleado) {
+            return Resultado.error(Mensajes.PORCENTAJES_VACIOS);
+        }
+        BigDecimal paraEstudiante = null;
+        BigDecimal paraEmpleado = null;
+        if (hayEstudiante) {
+            Resultado<BigDecimal> r = validarPorcentaje(Rol.ESTUDIANTE, estudiante);
+            if (!r.isOk()) {
+                return Resultado.error(r.getMensaje());
+            }
+            paraEstudiante = r.getValor();
+        }
+        if (hayEmpleado) {
+            Resultado<BigDecimal> r = validarPorcentaje(Rol.EMPLEADO, empleado);
+            if (!r.isOk()) {
+                return Resultado.error(r.getMensaje());
+            }
+            paraEmpleado = r.getValor();
+        }
+        if (paraEstudiante != null) {
+            tarifas.guardarPorcentaje(Rol.ESTUDIANTE, paraEstudiante);
+        }
+        if (paraEmpleado != null) {
+            tarifas.guardarPorcentaje(Rol.EMPLEADO, paraEmpleado);
+        }
+        return Resultado.exito(null, Mensajes.PORCENTAJE_ACTUALIZADO);
+    }
+
+    /** Comprueba que el tipo de usuario tenga porcentaje configurable y que el valor esté dentro de su rango. */
+    private Resultado<BigDecimal> validarPorcentaje(Rol rol, String porcentaje) {
         if (rol == Rol.PUBLICO_GENERAL) {
             return Resultado.error(Mensajes.PORCENTAJE_PUBLICO_FIJO);
         }
@@ -84,8 +133,7 @@ public class ServicioTarifas {
             return Resultado.error(String.format(Mensajes.PORCENTAJE_FUERA_DE_RANGO,
                     nombre(rol), minimo(rol).toPlainString(), maximo(rol).toPlainString()));
         }
-        tarifas.guardarPorcentaje(rol, valor);
-        return Resultado.exito(null, Mensajes.PORCENTAJE_ACTUALIZADO);
+        return Resultado.exito(valor, "");
     }
 
     // ------------------------------------------------------------ tarifa base por ruta

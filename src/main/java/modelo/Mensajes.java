@@ -73,6 +73,7 @@ public class Mensajes {
     public static final String PORCENTAJE_INVALIDO = "El porcentaje debe ser un número con hasta dos decimales";
     /** Se usa con String.format: tipo de usuario, mínimo y máximo. */
     public static final String PORCENTAJE_FUERA_DE_RANGO = "El porcentaje para %s debe estar entre %s y %s";
+    public static final String PORCENTAJES_VACIOS = "Ingrese el porcentaje de estudiantes, el de empleados o ambos";
     public static final String PORCENTAJE_PUBLICO_FIJO = "El porcentaje del público general es fijo (100 %)";
     public static final String ROL_SIN_TARIFA = "Este tipo de usuario no tiene tarifa configurable";
 }

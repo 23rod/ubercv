@@ -226,6 +226,64 @@ class ServicioTarifasTest {
         assertEquals(d("100"), tarifas.porcentajeDe(Rol.PUBLICO_GENERAL));
     }
 
+    // ------------------------------------------------------------ porcentajes de ambos tipos de usuario a la vez
+    @Test
+    @DisplayName("Dado porcentajes válidos para ambos tipos de usuario, cuando el admin los guarda, entonces los dos quedan configurados")
+    void configurarAmbosPorcentajes() {
+        Resultado<Void> r = tarifas.configurarPorcentajes("12", "50");
+
+        assertTrue(r.isOk());
+        assertEquals(Mensajes.PORCENTAJE_ACTUALIZADO, r.getMensaje());
+        assertEquals(d("12.00"), tarifas.porcentajeDe(Rol.ESTUDIANTE));
+        assertEquals(d("50.00"), tarifas.porcentajeDe(Rol.EMPLEADO));
+    }
+
+    @Test
+    @DisplayName("Dado un campo en blanco, cuando se guardan los porcentajes, entonces ese tipo de usuario queda como estaba")
+    void unCampoEnBlancoDejaElValorActual() {
+        tarifas.configurarPorcentajes("18", "55");
+
+        assertTrue(tarifas.configurarPorcentajes("", "40").isOk());
+        assertTrue(tarifas.configurarPorcentajes("11", "  ").isOk());
+
+        assertEquals(d("11.00"), tarifas.porcentajeDe(Rol.ESTUDIANTE));
+        assertEquals(d("40.00"), tarifas.porcentajeDe(Rol.EMPLEADO));
+    }
+
+    @Test
+    @DisplayName("Dado ambos campos en blanco, cuando se guardan los porcentajes, entonces se pide ingresar al menos uno")
+    void ambosEnBlancoSeRechaza() {
+        assertEquals(Mensajes.PORCENTAJES_VACIOS, tarifas.configurarPorcentajes("", "").getMensaje());
+        assertEquals(Mensajes.PORCENTAJES_VACIOS, tarifas.configurarPorcentajes(null, null).getMensaje());
+    }
+
+    @Test
+    @DisplayName("Dado un porcentaje válido y otro inválido, cuando se guardan, entonces no se guarda ninguno de los dos")
+    void siUnoEsInvalidoNoSeGuardaNinguno() {
+        Resultado<Void> r = tarifas.configurarPorcentajes("12", "99");
+
+        assertFalse(r.isOk());
+        assertEquals(String.format(Mensajes.PORCENTAJE_FUERA_DE_RANGO, "Empleado", "30", "60"), r.getMensaje());
+        assertEquals(d("15"), tarifas.porcentajeDe(Rol.ESTUDIANTE)); // el 12 válido NO se guardó: sigue el valor por defecto
+        assertEquals(d("45"), tarifas.porcentajeDe(Rol.EMPLEADO));
+
+        Resultado<Void> otro = tarifas.configurarPorcentajes("25", "40"); // estudiante fuera de 10-20
+        assertEquals(String.format(Mensajes.PORCENTAJE_FUERA_DE_RANGO, "Estudiante", "10", "20"), otro.getMensaje());
+        assertEquals(d("45"), tarifas.porcentajeDe(Rol.EMPLEADO)); // el 40 válido tampoco se guardó
+        assertEquals(Mensajes.PORCENTAJE_INVALIDO, tarifas.configurarPorcentajes("mucho", "40").getMensaje());
+    }
+
+    @Test
+    @DisplayName("Dado porcentajes configurados, cuando cambia la tarifa base, entonces los montos usan los porcentajes vigentes")
+    void losMontosUsanLosPorcentajesConfigurados() {
+        tarifas.registrarTarifaBase(EXTRA, "200");
+        tarifas.configurarPorcentajes("10", "60");
+
+        assertEquals(d("20.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
+        assertEquals(d("120.00"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));
+        assertEquals(d("200.00"), tarifas.montoPara(Rol.PUBLICO_GENERAL, EXTRA));
+    }
+
     // ------------------------------------------------------------ control de acceso
     @Test
     @DisplayName("Dado un usuario que no es administrador o sin sesión, cuando configura tarifas, entonces se le niega el acceso")
@@ -233,6 +291,7 @@ class ServicioTarifasTest {
         usuarios.iniciarSesion("estudiante@ucv.com", DatosSemilla.CLAVE_DEMO);
         assertEquals(Mensajes.ACCESO_DENEGADO, tarifas.registrarTarifaBase(EXTRA, "10").getMensaje());
         assertEquals(Mensajes.ACCESO_DENEGADO, tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "15").getMensaje());
+        assertEquals(Mensajes.ACCESO_DENEGADO, tarifas.configurarPorcentajes("15", "45").getMensaje());
         usuarios.cerrarSesion();
         assertEquals(Mensajes.ACCESO_DENEGADO, tarifas.actualizarTarifaBase(EXTRA, "10").getMensaje());
         assertNull(tarifas.tarifaBase(EXTRA));

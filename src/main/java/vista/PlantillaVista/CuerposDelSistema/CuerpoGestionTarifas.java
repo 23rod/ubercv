@@ -51,7 +51,7 @@ public class CuerpoGestionTarifas extends JPanel{
         panelBotonActualizarTarifa.add(campoActualizarTarifa);
         
         // Creacion del placeholder Estudiante 
-        JLabel estudiantesLabel = new JLabel("Tarifa para estudiantes (20-30%): ");
+        JLabel estudiantesLabel = new JLabel("Tarifa para estudiantes (10-20%): ");
         campoPorcentajeEstudiante = new JTextField(20);
         JPanel panelEstudiantePorcentaje = CrearSubPanel.subPanel(); 
         panelEstudiantePorcentaje.add(estudiantesLabel);
@@ -124,6 +124,11 @@ public class CuerpoGestionTarifas extends JPanel{
     } 
     public JButton getBotonGuardarPorcentajes(){
         return campoGuardarPorcentaje;
+    }
+    // El controlador muestra aqui los porcentajes que estan vigentes (por ejemplo "15" y "45")
+    public void mostrarPorcentajes(String estudiante, String empleado){
+        campoPorcentajeEstudiante.setText(estudiante);
+        campoPorcentajeEmpleado.setText(empleado);
     }
     public DefaultTableModel getModeloTablaRutas(){
         return filasTablaRutas;
