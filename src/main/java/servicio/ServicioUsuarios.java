@@ -17,7 +17,7 @@ import utilidades.validadores.Validador;
  * Lógica de HU01 (registro) y HU02 (inicio de sesión) más la sesión actual.
  * No usa Swing: por eso se puede probar con JUnit sin abrir ninguna ventana.
  */
-public class ServicioUsuarios implements Autorizador, ConsultaUsuarios {
+public class ServicioUsuarios implements Autorizador, ConsultaUsuarios, SesionActual {
 
     private final IRepositorioUsuarios repositorio;
     private Usuario usuarioSesion; // null = nadie ha iniciado sesión    
@@ -93,10 +93,12 @@ public class ServicioUsuarios implements Autorizador, ConsultaUsuarios {
         return usuarioSesion != null;
     }
 
+    @Override
     public Usuario getUsuarioSesion() {
         return usuarioSesion;
     }
 
+    @Override
     public Rol getRolSesion() {
         return (usuarioSesion == null) ? Rol.NINGUNO : usuarioSesion.getRol();
     }

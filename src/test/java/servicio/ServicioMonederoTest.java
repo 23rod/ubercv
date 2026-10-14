@@ -193,6 +193,32 @@ class ServicioMonederoTest {
         assertTrue(monedero.historial(ANA, -3).isEmpty());
     }
 
+    // ------------------------------------------------------------ referencia de pago repetida
+    @Test
+    @DisplayName("Dado una referencia ya usada, cuando se intenta acreditar otra recarga con ella, entonces se rechaza y no se anota nada")
+    void unaReferenciaRepetidaSeRechaza() {
+        monedero.acreditar(ANA, d("10.00"), "Recarga", "123456789012");
+
+        Resultado<Void> r = monedero.acreditar("luis@ucv.com", d("10.00"), "Recarga", " 123456789012 ");
+
+        assertFalse(r.isOk());
+        assertEquals(MensajesMonedero.REFERENCIA_REPETIDA, r.getMensaje());
+        assertEquals(d("0.00"), monedero.saldo("luis@ucv.com"));
+        assertEquals(d("10.00"), monedero.saldo(ANA));
+    }
+
+    @Test
+    @DisplayName("Dado 50 recargas simultáneas con la misma referencia, cuando se ejecutan a la vez, entonces solo una se acredita")
+    void cincuentaRecargasConLaMismaReferenciaSoloAcreditanUna() throws Exception {
+        // Con el repositorio lento, sin comprobar y abonar dentro del mismo bloqueo pasarían todas.
+        ServicioMonedero lento = new ServicioMonedero(new RepositorioLento(), RELOJ);
+
+        int exitos = ejecutarEnParalelo(50, () -> lento.acreditar(ANA, d("5.00"), "Recarga", "555555555555").isOk());
+
+        assertEquals(1, exitos);
+        assertEquals(d("5.00"), lento.saldo(ANA));
+    }
+
     // ------------------------------------------------------------ integridad con solicitudes simultáneas
     @Test
     @DisplayName("Dado 100 cobros simultáneos de 1.00 sobre un saldo de 40.00, cuando se ejecutan a la vez, entonces solo 40 tienen éxito y el saldo nunca es negativo")
@@ -214,12 +240,23 @@ class ServicioMonederoTest {
         @Override
         public List<Movimiento> listarPorUsuario(String correo) {
             List<Movimiento> lectura = super.listarPorUsuario(correo);
+            demorar();
+            return lectura;
+        }
+
+        @Override
+        public boolean existeReferencia(String referencia) {
+            boolean existe = super.existeReferencia(referencia);
+            demorar();
+            return existe;
+        }
+
+        private static void demorar() {
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-            return lectura;
         }
     }
 
