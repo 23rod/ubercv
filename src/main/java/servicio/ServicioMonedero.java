@@ -64,14 +64,18 @@ public class ServicioMonedero {
     }
 
     // ------------------------------------------------------------ movimientos de dinero (solo servicios del paquete)
-    /** Suma saldo por una recarga ya validada. La referencia es la del pago móvil. */
+    /** Suma saldo por una recarga ya validada. La referencia es la del pago móvil y no puede repetirse. */
     Resultado<Void> acreditar(String correo, BigDecimal monto, String descripcion, String referencia) {
         Resultado<Void> invalido = validar(correo, monto);
         if (invalido != null) {
             return invalido;
         }
         synchronized (cerradura) {
-            anotar(correo, TipoMovimiento.RECARGA, monto, descripcion, referencia);
+            // La comprobación y el abono van juntos: dos recargas simultáneas con la misma referencia no pasan las dos
+            if (referencia != null && !referencia.trim().isEmpty() && repositorio.existeReferencia(referencia)) {
+                return Resultado.error(MensajesMonedero.REFERENCIA_REPETIDA);
+            }
+            anotar(correo, TipoMovimiento.RECARGA, monto, descripcion, referencia == null ? null : referencia.trim());
         }
         return Resultado.exito(null, "Recarga acreditada");
     }
