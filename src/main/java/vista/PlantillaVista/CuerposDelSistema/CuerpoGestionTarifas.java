@@ -2,8 +2,6 @@ package vista.PlantillaVista.CuerposDelSistema;
 
 import vista.PlantillaVista.CrearSubPanel;
 
-import java.text.NumberFormat;
-
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.DimensionUIResource;
@@ -11,10 +9,13 @@ import javax.swing.table.DefaultTableModel;
 
 public class CuerpoGestionTarifas extends JPanel{
     
-    private JFormattedTextField campoTarifa;
+    private JTextField campoTarifa;
     private JButton campoGuardarTarifa;
     private JComboBox<String> plegableRuta;
     private JButton campoActualizarTarifa;
+    private JTextField campoPorcentajeEstudiante;
+    private JTextField campoPorcentajeEmpleado;
+    private JButton campoGuardarPorcentaje;
     private JTable tablaRutas;
     private DefaultTableModel filasTablaRutas;
 
@@ -26,13 +27,7 @@ public class CuerpoGestionTarifas extends JPanel{
         
         // Creacion del placeholder Monto 
         JLabel tarifaLabel = new JLabel("Indique la Tarifa para la ruta Extraurbana Seleccionada: ");
-        NumberFormat formatoEntero = NumberFormat.getIntegerInstance();
-        formatoEntero.setGroupingUsed(false); //Evita la division de los numeros por millares para evitar porblemas e compatibilidad en distintos dispositivos
-
-        campoTarifa = new JFormattedTextField(formatoEntero);
-        campoTarifa.setColumns(20);
-        campoTarifa.setValue(0); // Valor por defecto
-
+        campoTarifa = new JTextField(20);
         JPanel panelTarifa = CrearSubPanel.subPanel(); 
         panelTarifa.add(tarifaLabel);
         panelTarifa.add(campoTarifa);
@@ -41,7 +36,7 @@ public class CuerpoGestionTarifas extends JPanel{
         campoGuardarTarifa = new JButton("Guardar Tarifa");
         JPanel panelBotonGuardarTarifa = CrearSubPanel.subPanel();
         panelBotonGuardarTarifa.add(campoGuardarTarifa);
-
+        
         // Creacion del placeholder tipo de ruta
         JLabel rutaLabel = new JLabel("Defina la ruta a Modificar:"); // Punto donde el controlador mostrara las rutas creadas hasta el momento.
         String[] ruta = {"Ninguna"};
@@ -54,6 +49,25 @@ public class CuerpoGestionTarifas extends JPanel{
         campoActualizarTarifa = new JButton("Actualizar Tarifa Seleccionada");
         JPanel panelBotonActualizarTarifa = CrearSubPanel.subPanel();
         panelBotonActualizarTarifa.add(campoActualizarTarifa);
+        
+        // Creacion del placeholder Estudiante 
+        JLabel estudiantesLabel = new JLabel("Tarifa para estudiantes (20-30%): ");
+        campoPorcentajeEstudiante = new JTextField(20);
+        JPanel panelEstudiantePorcentaje = CrearSubPanel.subPanel(); 
+        panelEstudiantePorcentaje.add(estudiantesLabel);
+        panelEstudiantePorcentaje.add(campoPorcentajeEstudiante);
+        
+        // Creacion del placeholder Empleado 
+        JLabel empleadosLabel = new JLabel("Tarifa para Empleados (30-60%): ");
+        campoPorcentajeEmpleado = new JTextField(20);
+        JPanel panelEmpleadoTarifa = CrearSubPanel.subPanel(); 
+        panelEmpleadoTarifa.add(empleadosLabel);
+        panelEmpleadoTarifa.add(campoPorcentajeEmpleado);
+        
+        // Creacion del boton Guardar Porcentajes
+        campoGuardarPorcentaje = new JButton("Guardar Porcentajes");
+        JPanel panelBotonGuardarPorcentaje = CrearSubPanel.subPanel();
+        panelBotonGuardarPorcentaje.add(campoGuardarPorcentaje);
 
         // Cracion de la tabla de rutas
         String[] nombreColumnas = {"Nombre de Ruta", "Tarifa", "Estudiante", "Empleado", "Publico General"};
@@ -84,20 +98,14 @@ public class CuerpoGestionTarifas extends JPanel{
         add(panelBotonGuardarTarifa);
         add(panelPlegableRutaSelecionada);
         add(panelBotonActualizarTarifa);
+        add(panelEstudiantePorcentaje);
+        add(panelEmpleadoTarifa);
+        add(panelBotonGuardarPorcentaje);
         add(panelTablaTarifas);
     }
     // ----------------------------------------- Acceso para los controladores ---------------------------------------------------------
-    public int getTarifa(){
-        try { // Confirmacion de que el texto en la casilla sea un digito 
-            campoTarifa.commitEdit(); // Fuerza a JFormattedTextField a guardar el texto actual como valor
-        } catch (java.text.ParseException e) {
-            // Si el texto escrito no es un número válido, se ignora la edición no confirmada
-        }
-        Object valor = campoTarifa.getValue();
-        if (valor instanceof Number) {
-            return ((Number) valor).intValue();
-        }
-        return 0; // Caso que se confime la recarga sin ingresar un monto
+    public String getTarifa(){
+        return campoTarifa.getText();
     } 
     public JButton getBotonGuardarTarifa(){
         return campoGuardarTarifa;
@@ -108,8 +116,23 @@ public class CuerpoGestionTarifas extends JPanel{
     public JButton getBotonActualizarTarifa(){
         return campoActualizarTarifa;
     }
+    public String getPorcentajeEstudiante(){
+        return campoPorcentajeEstudiante.getText();
+    } 
+    public String getPorcentajeEmpleado(){
+        return campoPorcentajeEmpleado.getText();
+    } 
+    public JButton getBotonGuardarPorcentajes(){
+        return campoGuardarPorcentaje;
+    }
     public DefaultTableModel getModeloTablaRutas(){
         return filasTablaRutas;
+    }
+    public void setPorcentajes(int indice, String estudiante, String empleado){
+        if (indice >= 0 && indice < filasTablaRutas.getRowCount()) {
+            filasTablaRutas.setValueAt(estudiante, indice, 2);
+            filasTablaRutas.setValueAt(empleado, indice, 3);
+        }
     }
     // Lo llama el controlador para listar las rutas extraurbanas; conserva la ruta elegida si sigue existiendo
     public void actualizarRutas(java.util.List<String> nombres){

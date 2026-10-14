@@ -1,7 +1,5 @@
 package vista.PlantillaVista.CuerposDelSistema;
 
-import java.text.NumberFormat;
-
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.DimensionUIResource;
@@ -15,7 +13,7 @@ public class VentanaPagoMovil extends JPanel {
     private JTextField campoCedula;
     private JTextField campoTelefono;
     private JTextField campoReferencia;
-    private JFormattedTextField campoMonto;
+    private JTextField campoMonto;
     private JButton botonConfirmar;
     private JPanel panelAyuda;
     private JScrollPane scrollAyuda;
@@ -75,13 +73,7 @@ public class VentanaPagoMovil extends JPanel {
 
         // Creacion del placeholder Monto 
         JLabel montoLabel = new JLabel("Indique el Monto a Recargar: ");
-        NumberFormat formatoEntero = NumberFormat.getIntegerInstance();
-        formatoEntero.setGroupingUsed(false); //Evita la division de los numeros por millares para evitar porblemas e compatibilidad en distintos dispositivos
-
-        campoMonto = new JFormattedTextField(formatoEntero);
-        campoMonto.setColumns(20);
-        campoMonto.setValue(0); // Valor por defecto
-
+        campoMonto = new JTextField(20);
         JPanel panelMonto = CrearSubPanel.subPanel(); 
         panelMonto.add(montoLabel);
         panelMonto.add(campoMonto);
@@ -98,7 +90,7 @@ public class VentanaPagoMovil extends JPanel {
             "<p>Restricciones y reglas de entrada para evitar el mensaje de <i>\"Datos de pago móvil incorrectos\"</i>:</p>" +
             "<ul>" +
             "  <li><b>Número de Teléfono:</b> Debe constar de 11 dígitos numéricos (ej. 04121234567), sin guiones, espacios ni código internacional (+58).</li>" +
-            "  <li><b>Cédula de Identidad:</b> Debe contener hasta 8 dígitos numéricos, omitiendo letras (V-, E-), puntos o espacios.</li>" +
+            "  <li><b>Cédula de Identidad:</b> Debe contener de 5 a 10 dígitos numéricos, omitiendo letras (V-, E-), puntos o espacios.</li>" +
             "  <li><b>Número de Referencia:</b> Debe ser el código de confirmación emitido por la entidad bancaria, compuesto por 6 a 12 dígitos numéricos según el banco.</li>" +
             "  <li><b>Monto:</b> Debe ser un valor numérico superior a Bs.0 correspondiente al dinero transferido.</li>" +
             "</ul>" +
@@ -107,14 +99,14 @@ public class VentanaPagoMovil extends JPanel {
             "  <li><b>Referencia ya registrada / duplicada:</b> Cada número de referencia es único y solo puede registrarse una vez en el sistema para evitar solicitudes duplicadas.</li>" +
             "  <li><b>Incoherencia de Banco de Origen:</b> Asegúrate de seleccionar exactamente la entidad bancaria desde la cual ejecutaste el pago móvil.</li>" +
             "  <li><b>Cuentas y Datos Receptor:</b> Verifica los datos oficiales de Pago Móvil de la institución (RIF/Cédula institucional, banco receptor y número de teléfono) para confirmar a dónde enviaste el dinero antes de enviar el formulario.</li>" +
-            "  <li><b>Abono no reflejado de inmediato:</b> La solicitud ingresa a un proceso de validación y el saldo se sumará a tu cuenta una vez confirmados los datos por la plataforma.</li>" +
+            "  <li><b>El abono se reflejará de inmediato</b></li>" +
             "</ul>" +
             "<h2>3. Instrucciones Paso a Paso para el Usuario</h2>" +
             "<ol>" +
             "  <li>Realizar el Pago Móvil desde la aplicación de tu banco hacia la cuenta receptora institucional.</li>" +
             "  <li>Guardar el comprobante y copiar el número de referencia generado.</li>" +
             "  <li>Completar los campos en el formulario (banco, teléfono, cédula, referencia y monto).</li>" +
-            "  <li>Presionar <b>\"Procesar Recarga\"</b> y verificar el mensaje de confirmación (<i>\"Solicitud aceptada\"</i>).</li>" +
+            "  <li>Presionar <b>\"Confirmar Recarga\"</b> y verificar el mensaje de confirmación (<i>\"Solicitud aceptada\"</i>).</li>" +
             "</ol>" + 
             "</body></html>";
 
@@ -154,17 +146,8 @@ public class VentanaPagoMovil extends JPanel {
     public JTextField getCampoReferencia(){
         return campoReferencia;
     }    
-    public int getMonto(){
-        try { // Confirmacion de que el texto en la casilla sea un digito 
-            campoMonto.commitEdit(); // Fuerza a JFormattedTextField a guardar el texto actual como valor
-        } catch (java.text.ParseException e) {
-            // Si el texto escrito no es un número válido, se ignora la edición no confirmada
-        }
-        Object valor = campoMonto.getValue();
-        if (valor instanceof Number) {
-            return ((Number) valor).intValue();
-        }
-        return 0; // Caso que se confime la recarga sin ingresar un monto
+    public String getMonto(){
+        return campoMonto.getText();
     }  
     public JButton getBotonConfirmar(){
         return botonConfirmar;
