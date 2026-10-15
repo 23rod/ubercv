@@ -6,14 +6,22 @@ import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.DimensionUIResource;
 import javax.swing.table.DefaultTableModel;
+import java.awt.Dimension;
+import java.util.List;
 
 public class CuerpoRegistroRuta extends JPanel {
 
+    private static final String ELIJA_RUTA = "Ninguna";
+
     private JTextField campoNombreRuta;
-    private JTextField campoInicioJornada;
-    private JTextField campoFinalJornada;
+    private JComboBox<String> comboHoraInicio;
+    private JComboBox<String> comboMinutoInicio;
+    private JComboBox<String> comboHoraFin;
+    private JComboBox<String> comboMinutoFin;
     private JComboBox<String> plegableRuta;
-    private JButton botonConfirmar;
+    private JComboBox<String> comboRutasRedefinir;
+    private JButton botonGuardarRuta;
+    private JButton botonRedefinir;
     private JTable tablaRutas;
     private DefaultTableModel filasTablaRutas;
 
@@ -30,34 +38,65 @@ public class CuerpoRegistroRuta extends JPanel {
         panelNombreRuta.add(nombreRutaLabel);
         panelNombreRuta.add(campoNombreRuta);
 
-        // Creacion del placeholder Inicio Jornada se ingresa la hora con formato de 24 horas "00:00"
+        // Generar arreglos de horas (00 a 23) y minutos (00 a 59) asegurando 2 dígitos
+        String[] horas = new String[24];
+        for (int i = 0; i < 24; i++) {
+            horas[i] = String.format("%02d", i);
+        }
+        String[] minutos = new String[60];
+        for (int i = 0; i < 60; i++) {
+            minutos[i] = String.format("%02d", i);
+        }
+
+        // Creacion del panel Inicio de Jornada con comboboxes hora y minutos separados por ":"
         JLabel inicioJornadaLabel = new JLabel("Inicio de Jornada:"); 
-        campoInicioJornada = new JTextField(20);
+        comboHoraInicio = new JComboBox<>(horas);
+        comboMinutoInicio = new JComboBox<>(minutos);
+        comboHoraInicio.setPreferredSize(new Dimension(60, 25));
+        comboMinutoInicio.setPreferredSize(new Dimension(60, 25));
         JPanel panelInicioJornada = CrearSubPanel.subPanel();
         panelInicioJornada.add(inicioJornadaLabel);
-        panelInicioJornada.add(campoInicioJornada);
+        panelInicioJornada.add(comboHoraInicio);
+        panelInicioJornada.add(new JLabel(":"));
+        panelInicioJornada.add(comboMinutoInicio);
 
-        // Creacion del placeholder Final Jornada se ingresa la hora con formato de 24 horas "00:00"
+        // Creacion del panel Final de Jornada con comboboxes hora y minutos separados por ":"
         JLabel finalJornadaLabel = new JLabel("Final de Jornada:"); 
-        campoFinalJornada = new JTextField(20);
+        comboHoraFin = new JComboBox<>(horas);
+        comboMinutoFin = new JComboBox<>(minutos);
+        comboHoraFin.setPreferredSize(new Dimension(60, 25));
+        comboMinutoFin.setPreferredSize(new Dimension(60, 25));
         JPanel panelFinalJornada = CrearSubPanel.subPanel();
         panelFinalJornada.add(finalJornadaLabel);
-        panelFinalJornada.add(campoFinalJornada);
+        panelFinalJornada.add(comboHoraFin);
+        panelFinalJornada.add(new JLabel(":"));
+        panelFinalJornada.add(comboMinutoFin);
 
-        // Creacion del placeholder tipo de ruta
+        // Creacion del panel superior con el tipo de ruta y el boton Guardar Ruta
         JLabel tipoRutaLabel = new JLabel("Defina el tipo de ruta:");
         String[] tipoRuta = {"Ninguno", "Urbana", "Extraurbana"};
         plegableRuta = new JComboBox<>(tipoRuta);
-        JPanel panelPlegableTipoRuta = CrearSubPanel.subPanel();
-        panelPlegableTipoRuta.add(tipoRutaLabel);
-        panelPlegableTipoRuta.add(plegableRuta);
- 
-        // Creacion del boton confirmar
-        botonConfirmar = new JButton("Confirmar");
-        JPanel panelBoton = CrearSubPanel.subPanel();
-        panelBoton.add(botonConfirmar);
+        
+        botonGuardarRuta = new JButton("Guardar Ruta");
 
-        // Cracion de la tabla de rutas
+        JPanel panelTipoRuta = CrearSubPanel.subPanel();
+        panelTipoRuta.add(tipoRutaLabel);
+        panelTipoRuta.add(plegableRuta);
+        panelTipoRuta.add(botonGuardarRuta);
+
+        // Creacion del panel para redefinir ruta con
+        JLabel rutaRedefinirLabel = new JLabel("Elija una ruta a redefinir: ");
+        comboRutasRedefinir = new JComboBox<>();
+        comboRutasRedefinir.addItem(ELIJA_RUTA);
+        
+        botonRedefinir = new JButton("Redefinir ruta");
+
+        JPanel panelRedefinirRuta = CrearSubPanel.subPanel();
+        panelRedefinirRuta.add(rutaRedefinirLabel);
+        panelRedefinirRuta.add(comboRutasRedefinir);
+        panelRedefinirRuta.add(botonRedefinir);
+ 
+        // Creacion de la tabla de rutas
         String[] nombreColumnas = {"Nombre de Ruta", "Tipo", "Inicio", "Fin", "Unidades y Cupos", "Conductores Asignados"};
         filasTablaRutas = new DefaultTableModel(nombreColumnas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
             @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
@@ -76,20 +115,19 @@ public class CuerpoRegistroRuta extends JPanel {
         tablaRutas.getColumnModel().getColumn(4).setPreferredWidth(240); // Unidades y Cupos
         tablaRutas.getColumnModel().getColumn(5).setPreferredWidth(340); // Conductores Asignados
         
-        JScrollPane tablaConScroll = new JScrollPane(tablaRutas); //Metodo para garantizar la graficacion y visualizacion de una tabla de N filas
+        JScrollPane tablaConScroll = new JScrollPane(tablaConScroll = new JScrollPane(tablaRutas)); //Metodo para garantizar la graficacion y visualizacion de una tabla de N filas
         tablaConScroll.setPreferredSize(new DimensionUIResource(920, 150));
         
         JPanel panelTablaRutas = CrearSubPanel.subPanel(); // Ingraso la tablas con scroll en un panel para modificar sus dumensiones y ubicacion.
         panelTablaRutas.add(tablaConScroll);
                
-
         // --------------------------------------- disposicion del panel central del Cuerpo(Registro) -------------------------------------------- 
         
         add(panelNombreRuta);
         add(panelInicioJornada);
         add(panelFinalJornada);
-        add(panelPlegableTipoRuta);
-        add(panelBoton);
+        add(panelTipoRuta);
+        add(panelRedefinirRuta);
         add(panelTablaRutas);
     }
 
@@ -97,20 +135,66 @@ public class CuerpoRegistroRuta extends JPanel {
     public JTextField getcampoNombreRuta(){
         return campoNombreRuta;
     }
-    public JTextField getcampoInicioJornada(){
-        return campoInicioJornada;
+    public String getInicioJornadaSeleccionada() {
+        return comboHoraInicio.getSelectedItem() + ":" + comboMinutoInicio.getSelectedItem();
     }
-    public JTextField getcampoFinalJornada(){
-        return campoFinalJornada;
-    }    
+    public String getFinalJornadaSeleccionada() {
+        return comboHoraFin.getSelectedItem() + ":" + comboMinutoFin.getSelectedItem();
+    }
+    public void setInicioJornada(String horaMinuto) {
+        if (horaMinuto != null && horaMinuto.contains(":")) {
+            String[] partes = horaMinuto.split(":");
+            if (partes.length == 2) {
+                comboHoraInicio.setSelectedItem(partes[0]);
+                comboMinutoInicio.setSelectedItem(partes[1]);
+            }
+        }
+    }
+    public void setFinalJornada(String horaMinuto) {
+        if (horaMinuto != null && horaMinuto.contains(":")) {
+            String[] partes = horaMinuto.split(":");
+            if (partes.length == 2) {
+                comboHoraFin.setSelectedItem(partes[0]);
+                comboMinutoFin.setSelectedItem(partes[1]);
+            }
+        }
+    }
+    public JComboBox<String> getPlegableRuta() {
+        return plegableRuta;
+    }
     public String getTipoRutaSeleccionada(){
          return (String) plegableRuta.getSelectedItem(); 
     }
-    public JButton getBotonConfirmar(){
-        return botonConfirmar;
+    public JButton getBotonGuardarRuta(){
+        return botonGuardarRuta;
+    }
+    public JButton getBotonRedefinir(){
+        return botonRedefinir;
+    }
+    public JComboBox<String> getComboRutasRedefinir() {
+        return comboRutasRedefinir;
+    }
+    public String getRutaRedefinirElegida(){
+        Object item = comboRutasRedefinir.getSelectedItem();
+        if (item == null || ELIJA_RUTA.equals(item.toString())) {
+            return null;
+        }
+        return item.toString();
+    }
+    public void actualizarRutasRedefinir(List<String> nombres) {
+        Object anterior = comboRutasRedefinir.getSelectedItem();
+        comboRutasRedefinir.removeAllItems();
+        comboRutasRedefinir.addItem(ELIJA_RUTA);
+        for (String valor : nombres) {
+            comboRutasRedefinir.addItem(valor);
+        }
+        if (anterior != null && !ELIJA_RUTA.equals(anterior) && nombres.contains(anterior)) {
+            comboRutasRedefinir.setSelectedItem(anterior);
+        } else {
+            comboRutasRedefinir.setSelectedItem(ELIJA_RUTA);
+        }
     }
     public DefaultTableModel getModeloTablaRutas(){
         return filasTablaRutas;
     }
 }
- 
