@@ -115,8 +115,8 @@ public class EncabezadoGeneral extends JPanel{
         this.repaint();
     }
 
-    public void mostrarRol(boolean visibleRol) {
-        labelRol.setVisible(visibleRol);
+    public void mostrarSaldo(boolean visibleSaldo) {
+        labelSaldo.setVisible(visibleSaldo);
         this.revalidate();
         this.repaint();
     }
