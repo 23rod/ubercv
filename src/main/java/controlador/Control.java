@@ -3,17 +3,23 @@ package controlador;
 import java.nio.file.Path;
 import modelo.Resultado;
 import modelo.Rol;
+import persistencia.interfaces.IRepositorioMovimientos;
+import persistencia.interfaces.IRepositorioRecargas;
 import persistencia.interfaces.IRepositorioRutas;
 import persistencia.interfaces.IRepositorioTarifas;
 import persistencia.interfaces.IRepositorioUnidades;
 import persistencia.interfaces.IRepositorioUsuarios;
 import persistencia.memoria.DatosSemilla;
+import persistencia.memoria.RepositorioMovimientos;
+import persistencia.memoria.RepositorioRecargas;
 import persistencia.memoria.RepositorioRutas;
 import persistencia.memoria.RepositorioTarifas;
 import persistencia.memoria.RepositorioUnidades;
 import persistencia.memoria.RepositorioUsuarios;
 import servicio.ServicioFlota;
 import servicio.ServicioAsignaciones;
+import servicio.ServicioMonedero;
+import servicio.ServicioRecargas;
 import servicio.ServicioRutas;
 import servicio.ServicioTarifas;
 import servicio.ServicioUsuarios;
@@ -24,6 +30,7 @@ import servicio.ServicioUsuarios;
  * Main crea UN solo Control y se lo pasa a las ventanas, así todas comparten usuarios y sesión.
  *
  * Módulos: ControlSesion (HU01/02), ControlFlota (HU09), ControlItinerarios (HU10/12), ControlTarifas (HU11),
+ * ControlMonedero (HU04/06) y ControlRecargas (HU04/05),
  * ControlPrincipal (menú según rol). Navegador reúne las utilidades de ventanas.
  */
 public class Control {
@@ -55,7 +62,14 @@ public class Control {
         ControlFlota controlFlota = new ControlFlota(servicioFlota);
         ControlItinerarios controlItinerarios = new ControlItinerarios(servicioRutas, servicioAsignaciones, servicioUsuarios, controlFlota);
         ControlTarifas controlTarifas = new ControlTarifas(new ServicioTarifas(repositorioTarifas, repositorioRutas, servicioUsuarios));
-        this.controlPrincipal = new ControlPrincipal(servicioUsuarios, navegador, controlSesion, controlFlota, controlItinerarios, controlTarifas);
+        IRepositorioMovimientos repositorioMovimientos = new RepositorioMovimientos(Path.of("datos", "movimientos.txt"));
+        ServicioMonedero servicioMonedero = new ServicioMonedero(repositorioMovimientos);
+        IRepositorioRecargas repositorioRecargas = new RepositorioRecargas(Path.of("datos", "recargas.txt"));
+        ServicioRecargas servicioRecargas = new ServicioRecargas(repositorioRecargas, servicioMonedero, servicioUsuarios, servicioUsuarios);
+        ControlRecargas controlRecargas = new ControlRecargas(servicioRecargas);
+        ControlMonedero controlMonedero = new ControlMonedero(servicioMonedero, servicioUsuarios, controlRecargas, navegador);
+        this.controlPrincipal = new ControlPrincipal(servicioUsuarios, navegador, controlSesion, controlFlota, controlItinerarios,
+                controlTarifas, controlRecargas, controlMonedero);
     }
 
     // -------------------------------------------- Fachada que usan las vistas

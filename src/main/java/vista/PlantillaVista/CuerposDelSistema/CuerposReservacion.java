@@ -181,7 +181,6 @@ BtnCancelarReservacion.addActionListener(e -> {
         
         // Aquí se abre el otro panel
         JOptionPane.showMessageDialog(this, "Acción confirmada. Dato ingresado: " + dato);
-        // TODO: Código para abrir el siguiente panel
         
     } else { 
         // Botón "Negar" (índice 1) o si cierran la ventana con la "X"
