@@ -11,11 +11,15 @@ public class EncabezadoGeneral extends JPanel{
     private JPanel panelComponentesEncabezado;
     private JLabel Logo;
     private JPanel ubicacionLogo;
+    private JLabel labelNombre;
+    private JLabel labelRol;
+    private JLabel labelSaldo;
+    private JPanel panelInfoUsuario;
     private JButton botonCerrarSesion;
     private JPanel panelBotonCerrarSesion;
 
     public EncabezadoGeneral(){
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo ancho disponible de la pagina
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
         this.setOpaque(true);
         this.setBackground(new ColorUIResource(255, 255, 255));
 
@@ -24,13 +28,27 @@ public class EncabezadoGeneral extends JPanel{
         this.setBackground(new ColorUIResource(255,255,255));
         
         // --------------------------------------------- creacion elementos ------------------------------------------------------
-        // Creacion del LOGO
+        // Creacion del LOGO y unificacion del panel de usuario a su lado derecho
         ubicacionLogo = CrearSubPanel.subPanel();
         Logo = new JLabel("<html><u>Ubercv</u></html>");
         Logo.setForeground(new ColorUIResource(0,0,0));
         Logo.setFont(new FontUIResource("Inter",1,56));
-        ubicacionLogo.setLayout(new FlowLayout(FlowLayout.LEFT)); // Ubicacion del Logo
+        
+        labelNombre = new JLabel("Nombre: ");
+        labelRol = new JLabel("Rol: ");
+        labelSaldo = new JLabel("Saldo: ");
+        
+        panelInfoUsuario = CrearSubPanel.subPanel();
+        panelInfoUsuario.setLayout(new BoxLayout(panelInfoUsuario, BoxLayout.Y_AXIS));
+        panelInfoUsuario.setAlignmentY(JPanel.CENTER_ALIGNMENT);
+        panelInfoUsuario.setBorder(BorderFactory.createEmptyBorder(0, 30, 0, 0)); // Espaciado controlado (aprox. 1 a 2 cm respecto al logo)
+        panelInfoUsuario.add(labelNombre);
+        panelInfoUsuario.add(labelRol);
+        panelInfoUsuario.add(labelSaldo);
+
+        ubicacionLogo.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0)); // Ubicacion del Logo
         ubicacionLogo.add(Logo);
+        ubicacionLogo.add(panelInfoUsuario);
         ubicacionLogo.setAlignmentY(JPanel.CENTER_ALIGNMENT);
         ubicacionLogo.setBorder(BorderFactory.createEmptyBorder(10,10,3,10)); //Separacion de los bordes de la pagina
         
@@ -45,6 +63,7 @@ public class EncabezadoGeneral extends JPanel{
         panelComponentesEncabezado = CrearSubPanel.subPanel();
         panelComponentesEncabezado.setLayout(new BoxLayout(panelComponentesEncabezado, BoxLayout.X_AXIS));
         panelComponentesEncabezado.add(ubicacionLogo);
+        panelComponentesEncabezado.add(Box.createHorizontalGlue()); // Espaciador flexible para empujar el botón de cerrar sesión al extremo derecho
         panelComponentesEncabezado.add(panelBotonCerrarSesion);
 
         // linea separadora del cuerpo 
@@ -67,6 +86,15 @@ public class EncabezadoGeneral extends JPanel{
     public JButton getBotonCerrarSesion(){
         return botonCerrarSesion;
     }
+    public JLabel getLabelNombre() {
+        return labelNombre;
+    }
+    public JLabel getLabelRol() {
+        return labelRol;
+    }
+    public JLabel getLabelSaldo() {
+        return labelSaldo;
+    }
 
     // --------------------------------------------------- metodos del encabezado ------------------------------------------------
 
@@ -75,6 +103,20 @@ public class EncabezadoGeneral extends JPanel{
         botonCerrarSesion.setVisible(visible);
         panelBotonCerrarSesion.setVisible(visible);
         // Calcula y grafica nuevamente el panel luego de hacer visible o no el boton
+        this.revalidate();
+        this.repaint();
+    }
+
+    public void setInfoUsuario(String nombre, String rol, String saldo) {
+        labelNombre.setText("Nombre: " + nombre);
+        labelRol.setText("Rol: " + rol);
+        labelSaldo.setText("Saldo: " + saldo);
+        this.revalidate();
+        this.repaint();
+    }
+
+    public void mostrarRol(boolean visibleRol) {
+        labelRol.setVisible(visibleRol);
         this.revalidate();
         this.repaint();
     }
