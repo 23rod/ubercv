@@ -52,8 +52,8 @@ class ControlItinerarios {
                 for (Ruta r : servicioRutas.listarRutas()) {
                     if (r.getNombre().equalsIgnoreCase(rutaSeleccionada)) {
                         cuerpo.getcampoNombreRuta().setText(r.getNombre());
-                        cuerpo.getcampoInicioJornada().setText(r.getInicioJornada().format(HORA));
-                        cuerpo.getcampoFinalJornada().setText(r.getFinJornada().format(HORA));
+                        cuerpo.setInicioJornada(r.getInicioJornada().format(HORA));
+                        cuerpo.setFinalJornada(r.getFinJornada().format(HORA));
                         cuerpo.getPlegableRuta().setSelectedItem(r.getTipo().getEtiqueta());
                         break;
                     }
@@ -66,8 +66,8 @@ class ControlItinerarios {
             Resultado<Void> r = servicioRutas.crearRuta(
                     cuerpo.getcampoNombreRuta().getText(),
                     TipoRuta.desdeTexto(cuerpo.getTipoRutaSeleccionada()),
-                    cuerpo.getcampoInicioJornada().getText(),
-                    cuerpo.getcampoFinalJornada().getText());
+                    cuerpo.getInicioJornadaSeleccionada(),
+                    cuerpo.getFinalJornadaSeleccionada());
             JOptionPane.showMessageDialog(cuerpo, r.getMensaje());
             if (r.isOk()) {
                 limpiarFormularioRuta(cuerpo);
@@ -81,8 +81,8 @@ class ControlItinerarios {
                     cuerpo.getRutaRedefinirElegida(),
                     cuerpo.getcampoNombreRuta().getText(),
                     TipoRuta.desdeTexto(cuerpo.getTipoRutaSeleccionada()),
-                    cuerpo.getcampoInicioJornada().getText(),
-                    cuerpo.getcampoFinalJornada().getText());
+                    cuerpo.getInicioJornadaSeleccionada(),
+                    cuerpo.getFinalJornadaSeleccionada());
             JOptionPane.showMessageDialog(cuerpo, r.getMensaje());
             if (r.isOk()) {
                 limpiarFormularioRuta(cuerpo);
@@ -197,8 +197,6 @@ class ControlItinerarios {
 
     private void limpiarFormularioRuta(CuerpoRegistroRuta cuerpo) {
         cuerpo.getcampoNombreRuta().setText("");
-        cuerpo.getcampoInicioJornada().setText("");
-        cuerpo.getcampoFinalJornada().setText("");
     }
 
     private List<String> nombresDeRutas() {

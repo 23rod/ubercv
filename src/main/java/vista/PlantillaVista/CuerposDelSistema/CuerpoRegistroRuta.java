@@ -6,6 +6,7 @@ import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.DimensionUIResource;
 import javax.swing.table.DefaultTableModel;
+import java.awt.Dimension;
 import java.util.List;
 
 public class CuerpoRegistroRuta extends JPanel {
@@ -13,8 +14,10 @@ public class CuerpoRegistroRuta extends JPanel {
     private static final String ELIJA_RUTA = "Ninguna";
 
     private JTextField campoNombreRuta;
-    private JTextField campoInicioJornada;
-    private JTextField campoFinalJornada;
+    private JComboBox<String> comboHoraInicio;
+    private JComboBox<String> comboMinutoInicio;
+    private JComboBox<String> comboHoraFin;
+    private JComboBox<String> comboMinutoFin;
     private JComboBox<String> plegableRuta;
     private JComboBox<String> comboRutasRedefinir;
     private JButton botonGuardarRuta;
@@ -35,19 +38,39 @@ public class CuerpoRegistroRuta extends JPanel {
         panelNombreRuta.add(nombreRutaLabel);
         panelNombreRuta.add(campoNombreRuta);
 
-        // Creacion del placeholder Inicio Jornada se ingresa la hora con formato de 24 horas "00:00"
+        // Generar arreglos de horas (00 a 23) y minutos (00 a 59) asegurando 2 dígitos
+        String[] horas = new String[24];
+        for (int i = 0; i < 24; i++) {
+            horas[i] = String.format("%02d", i);
+        }
+        String[] minutos = new String[60];
+        for (int i = 0; i < 60; i++) {
+            minutos[i] = String.format("%02d", i);
+        }
+
+        // Creacion del panel Inicio de Jornada con comboboxes hora y minutos separados por ":"
         JLabel inicioJornadaLabel = new JLabel("Inicio de Jornada:"); 
-        campoInicioJornada = new JTextField(20);
+        comboHoraInicio = new JComboBox<>(horas);
+        comboMinutoInicio = new JComboBox<>(minutos);
+        comboHoraInicio.setPreferredSize(new Dimension(60, 25));
+        comboMinutoInicio.setPreferredSize(new Dimension(60, 25));
         JPanel panelInicioJornada = CrearSubPanel.subPanel();
         panelInicioJornada.add(inicioJornadaLabel);
-        panelInicioJornada.add(campoInicioJornada);
+        panelInicioJornada.add(comboHoraInicio);
+        panelInicioJornada.add(new JLabel(":"));
+        panelInicioJornada.add(comboMinutoInicio);
 
-        // Creacion del placeholder Final Jornada se ingresa la hora con formato de 24 horas "00:00"
+        // Creacion del panel Final de Jornada con comboboxes hora y minutos separados por ":"
         JLabel finalJornadaLabel = new JLabel("Final de Jornada:"); 
-        campoFinalJornada = new JTextField(20);
+        comboHoraFin = new JComboBox<>(horas);
+        comboMinutoFin = new JComboBox<>(minutos);
+        comboHoraFin.setPreferredSize(new Dimension(60, 25));
+        comboMinutoFin.setPreferredSize(new Dimension(60, 25));
         JPanel panelFinalJornada = CrearSubPanel.subPanel();
         panelFinalJornada.add(finalJornadaLabel);
-        panelFinalJornada.add(campoFinalJornada);
+        panelFinalJornada.add(comboHoraFin);
+        panelFinalJornada.add(new JLabel(":"));
+        panelFinalJornada.add(comboMinutoFin);
 
         // Creacion del panel superior con el tipo de ruta y el boton Guardar Ruta
         JLabel tipoRutaLabel = new JLabel("Defina el tipo de ruta:");
@@ -92,7 +115,7 @@ public class CuerpoRegistroRuta extends JPanel {
         tablaRutas.getColumnModel().getColumn(4).setPreferredWidth(240); // Unidades y Cupos
         tablaRutas.getColumnModel().getColumn(5).setPreferredWidth(340); // Conductores Asignados
         
-        JScrollPane tablaConScroll = new JScrollPane(tablaRutas); //Metodo para garantizar la graficacion y visualizacion de una tabla de N filas
+        JScrollPane tablaConScroll = new JScrollPane(tablaConScroll = new JScrollPane(tablaRutas)); //Metodo para garantizar la graficacion y visualizacion de una tabla de N filas
         tablaConScroll.setPreferredSize(new DimensionUIResource(920, 150));
         
         JPanel panelTablaRutas = CrearSubPanel.subPanel(); // Ingraso la tablas con scroll en un panel para modificar sus dumensiones y ubicacion.
@@ -112,12 +135,30 @@ public class CuerpoRegistroRuta extends JPanel {
     public JTextField getcampoNombreRuta(){
         return campoNombreRuta;
     }
-    public JTextField getcampoInicioJornada(){
-        return campoInicioJornada;
+    public String getInicioJornadaSeleccionada() {
+        return comboHoraInicio.getSelectedItem() + ":" + comboMinutoInicio.getSelectedItem();
     }
-    public JTextField getcampoFinalJornada(){
-        return campoFinalJornada;
-    }    
+    public String getFinalJornadaSeleccionada() {
+        return comboHoraFin.getSelectedItem() + ":" + comboMinutoFin.getSelectedItem();
+    }
+    public void setInicioJornada(String horaMinuto) {
+        if (horaMinuto != null && horaMinuto.contains(":")) {
+            String[] partes = horaMinuto.split(":");
+            if (partes.length == 2) {
+                comboHoraInicio.setSelectedItem(partes[0]);
+                comboMinutoInicio.setSelectedItem(partes[1]);
+            }
+        }
+    }
+    public void setFinalJornada(String horaMinuto) {
+        if (horaMinuto != null && horaMinuto.contains(":")) {
+            String[] partes = horaMinuto.split(":");
+            if (partes.length == 2) {
+                comboHoraFin.setSelectedItem(partes[0]);
+                comboMinutoFin.setSelectedItem(partes[1]);
+            }
+        }
+    }
     public JComboBox<String> getPlegableRuta() {
         return plegableRuta;
     }
