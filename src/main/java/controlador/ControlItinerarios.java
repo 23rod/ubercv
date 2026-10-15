@@ -38,14 +38,31 @@ class ControlItinerarios {
     void conectar(CuerpoRegistroRuta cuerpo, PanelGestionRutas panel) {
         Runnable refrescar = () -> {
             llenarTablaRutas(cuerpo.getModeloTablaRutas(), true);
+            cuerpo.actualizarRutasRedefinir(nombresDeRutas());
             panel.actualizarRutas(nombresDeRutas());
             panel.actualizarUnidades(controlFlota.placasDeUnidades());
             panel.actualizarConductores(cedulasDeConductores());
         };
         refrescar.run();
 
+        // Autocompletar campos del formulario al seleccionar una ruta en el combo box de redefinir
+        cuerpo.getComboRutasRedefinir().addActionListener(e -> {
+            String rutaSeleccionada = cuerpo.getRutaRedefinirElegida();
+            if (rutaSeleccionada != null) {
+                for (Ruta r : servicioRutas.listarRutas()) {
+                    if (r.getNombre().equalsIgnoreCase(rutaSeleccionada)) {
+                        cuerpo.getcampoNombreRuta().setText(r.getNombre());
+                        cuerpo.getcampoInicioJornada().setText(r.getInicioJornada().format(HORA));
+                        cuerpo.getcampoFinalJornada().setText(r.getFinJornada().format(HORA));
+                        cuerpo.getPlegableRuta().setSelectedItem(r.getTipo().getEtiqueta());
+                        break;
+                    }
+                }
+            }
+        });
+
         // HU10: crear ruta
-        cuerpo.getBotonConfirmar().addActionListener(e -> {
+        cuerpo.getBotonGuardarRuta().addActionListener(e -> {
             Resultado<Void> r = servicioRutas.crearRuta(
                     cuerpo.getcampoNombreRuta().getText(),
                     TipoRuta.desdeTexto(cuerpo.getTipoRutaSeleccionada()),
@@ -58,10 +75,10 @@ class ControlItinerarios {
             }
         });
 
-        // HU10: redefinir la ruta elegida con los datos del formulario
-        panel.getBotonRedefinir().addActionListener(e -> {
+        // HU10: redefinir la ruta elegida con los datos del formulario usando su combo box exclusivo
+        cuerpo.getBotonRedefinir().addActionListener(e -> {
             Resultado<Void> r = servicioRutas.redefinirRuta(
-                    panel.getRutaElegida(),
+                    cuerpo.getRutaRedefinirElegida(),
                     cuerpo.getcampoNombreRuta().getText(),
                     TipoRuta.desdeTexto(cuerpo.getTipoRutaSeleccionada()),
                     cuerpo.getcampoInicioJornada().getText(),
