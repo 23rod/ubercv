@@ -111,16 +111,16 @@ public class CuerpoConsultarSaldo extends JPanel {
         TablaOperaciones.getTableHeader().setResizingAllowed(false);
         TablaOperaciones.getColumnModel().getColumn(0).setPreferredWidth(60);// Dia
         TablaOperaciones.getColumnModel().getColumn(1).setPreferredWidth(60); // hora
-        TablaOperaciones.getColumnModel().getColumn(2).setPreferredWidth(120); // Numero Emisor
-        TablaOperaciones.getColumnModel().getColumn(3).setPreferredWidth(240); // Numero de referencia
-        TablaOperaciones.getColumnModel().getColumn(4).setPreferredWidth(240); // monto
+        TablaOperaciones.getColumnModel().getColumn(2).setPreferredWidth(250); // Numero Emisor
+        TablaOperaciones.getColumnModel().getColumn(3).setPreferredWidth(250); // Numero de referencia
+        TablaOperaciones.getColumnModel().getColumn(4).setPreferredWidth(170); // monto
 
         //Centramos los valores de la tabla
 
         DefaultTableCellRenderer CentrarCeldas= new DefaultTableCellRenderer(); // variable que nos permite centrar el texto de las celdas
         CentrarCeldas.setHorizontalAlignment(JLabel.CENTER);
         for(int i=0; i<TablaOperaciones.getColumnCount();i++){
-            TablaOperaciones.getColumnModel().getColumn(i).setCellRenderer(CentrarCeldas);
+            TablaOperaciones.getColumnModel().getColumn(i).setCellRenderer(CentrarCeldas); 
         }
         DefaultTableCellRenderer centrarEncabezados = (DefaultTableCellRenderer)TablaOperaciones.getTableHeader().getDefaultRenderer();
         centrarEncabezados.setHorizontalAlignment(JLabel.CENTER);
@@ -128,7 +128,10 @@ public class CuerpoConsultarSaldo extends JPanel {
         //Emcapsulamos la tabla
 
         JScrollPane scrollPane= new JScrollPane(TablaOperaciones); // encapsulamos la tabla para poder mostrarla en la ventana
-        DimensionUIResource tamañofijo = new DimensionUIResource(850, 50);
+        
+        // CAMBIO REALIZADO AQUÍ: Se aumentó la altura de 50 a 300 para ocupar más espacio vertical
+        DimensionUIResource tamañofijo = new DimensionUIResource(850, 300);
+        
         scrollPane.setPreferredSize(tamañofijo);
         scrollPane.setMaximumSize(tamañofijo);
         scrollPane.setAlignmentX(JComponent.CENTER_ALIGNMENT);
