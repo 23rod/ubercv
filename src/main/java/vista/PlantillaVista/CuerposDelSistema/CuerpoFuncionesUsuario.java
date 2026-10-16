@@ -4,6 +4,13 @@ import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.DimensionUIResource;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import java.awt.BorderLayout;
+import java.awt.FontMetrics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import vista.PlantillaVista.CrearSubPanel;
 
@@ -13,23 +20,41 @@ public class CuerpoFuncionesUsuario extends JPanel {
     private JTable tablaRutas;
     private DefaultTableModel filasTablaRutas;
     
+    // Componentes nuevos basados en el borrador[cite: 2]
+    private JComboBox<String> comboPlaca;
+    private JButton botonConfirmarReserva;
+    private JLabel labelReservaActualDia;
+    private JTable tablaReservaActual;
+    private DefaultTableModel filasTablaReservaActual;
+    private JLabel labelEstadoUnidad;
+    private JButton botonMasInformacionTicket;
+    private JTable tablaTicketActual;
+    private DefaultTableModel filasTablaTicketActual;
+    
     public CuerpoFuncionesUsuario(){
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Extencion a todo lo alto disponible de la pagina
+        // Se configura el panel principal con BorderLayout para albergar el JScrollPane general
+        this.setLayout(new BorderLayout());
         this.setOpaque(true);
-        this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setBackground(new ColorUIResource(255,255,255));
+
+        // Panel de contenido interno que mantiene la distribución vertical de los componentes
+        JPanel panelContenido = new JPanel();
+        panelContenido.setLayout(new BoxLayout(panelContenido, BoxLayout.Y_AXIS)); 
+        panelContenido.setOpaque(true);
+        panelContenido.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panelContenido.setBackground(new ColorUIResource(255,255,255));
 
         // Creacion del boton Recarga Monedero
         botonMonederoVirtual = new JButton("Monedero Virtual");
         JPanel panelMVirtual = CrearSubPanel.subPanel();
         panelMVirtual.add(botonMonederoVirtual);
 
-        // Creacion de la tabla de rutas
+        // Creacion de la tabla de rutas[cite: 1]
         String[] nombreColumnasRutas = {"Nombre de Ruta", "Tipo de Ruta", "Inicio de Jornada", "Final de Jornada", "Unidades Asignadas(Placa)"};
-        filasTablaRutas = new DefaultTableModel(nombreColumnasRutas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
-            @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
+        filasTablaRutas = new DefaultTableModel(nombreColumnasRutas, 3){ 
+            @Override                                                                
             public boolean isCellEditable(int row, int column) {
-            return false;
+                return false;
             }
         };
         tablaRutas = new JTable(filasTablaRutas);
@@ -37,21 +62,203 @@ public class CuerpoFuncionesUsuario extends JPanel {
         tablaRutas.getTableHeader().setReorderingAllowed(false);
         tablaRutas.getTableHeader().setResizingAllowed(false);
         
-        JScrollPane tablaConScrollRutas = new JScrollPane(tablaRutas); //Metodo para garantizar la graficacion y visualizacion de una tabla de N filas
+        JScrollPane tablaConScrollRutas = new JScrollPane(tablaRutas); 
         tablaConScrollRutas.setPreferredSize(new DimensionUIResource(800, 150));
         
-        JPanel panelTablaRutas = CrearSubPanel.subPanel(); // Ingraso la tablas con scroll en un panel para modificar sus dumensiones y ubicacion.
+        JPanel panelTablaRutas = CrearSubPanel.subPanel(); 
         panelTablaRutas.add(tablaConScrollRutas);
 
-        // --------------------------------------- disposicion del panel central del Cuerpo(FuncionesUsuarios) -------------------------------------------- 
-        add(panelMVirtual);
-        add(panelTablaRutas);
+        // --------------------------------------- Creación de elementos: (1) Reservar Cupos (JComboBox para Placa) --------------------------------------------
+        String[] placa = {"Ninguna"};
+        comboPlaca = new JComboBox<>(placa);
+        JPanel panelComboPlaca = CrearSubPanel.subPanel();
+        panelComboPlaca.add(new JLabel("Placa: "));
+        panelComboPlaca.add(comboPlaca);
+
+        // --------------------------------------- Creación de elementos: (2) Confirmar Reserva --------------------------------------------
+        botonConfirmarReserva = new JButton("Confirmar Reserva");
+        JPanel panelBotonConfirmarReserva = CrearSubPanel.subPanel();
+        panelBotonConfirmarReserva.add(botonConfirmarReserva);
+
+        // --------------------------------------- Creación de elementos: (3) Reserva Actual para Día Actual --------------------------------------------
+        labelReservaActualDia = new JLabel("Reserva Actual para Día Actual");
+        JPanel panelLabelReservaActual = CrearSubPanel.subPanel();
+        panelLabelReservaActual.add(labelReservaActualDia);
+
+        String[] nombreColumnasReservaActual = {"Nombre de Ruta", "Tipo de Ruta", "Inicio", "Final", "Placa", "Estado de la Unidad"};
+        filasTablaReservaActual = new DefaultTableModel(nombreColumnasReservaActual, 1){
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        tablaReservaActual = new JTable(filasTablaReservaActual);
+        tablaReservaActual.setRowHeight(35);
+        tablaReservaActual.getTableHeader().setReorderingAllowed(false);
+        tablaReservaActual.getTableHeader().setResizingAllowed(false);
+        
+        
+        // Cálculo del ancho basado en contenido/texto para "Tipo de Ruta" + espacio de un caracter a cada lado
+        TableColumn colTipoRuta = tablaReservaActual.getColumnModel().getColumn(1);
+        FontMetrics fm = tablaReservaActual.getFontMetrics(tablaReservaActual.getFont());
+        String sampleTipo = (String) colTipoRuta.getHeaderValue();
+        int charWidth = fm.stringWidth("M"); // Ancho estimado de un carácter estándar
+        int textWidth = fm.stringWidth(sampleTipo);
+        colTipoRuta.setPreferredWidth(textWidth + (charWidth * 2));
+        
+        // Columnas Inicio, Final y Placa más pequeñas
+        tablaReservaActual.getColumnModel().getColumn(2).setPreferredWidth(65); // Inicio
+        tablaReservaActual.getColumnModel().getColumn(3).setPreferredWidth(65); // Final
+        tablaReservaActual.getColumnModel().getColumn(4).setPreferredWidth(65); // Placa
+        tablaReservaActual.getColumnModel().getColumn(5).setPreferredWidth(120); // Estado de la Unidad
+        
+        // El espacio liberado se le asigna a "Nombre de Ruta" (columna 0) para abarcar el excedente hasta completar los 800px de ancho preferido
+        int anchoOtrasColumnas = colTipoRuta.getPreferredWidth() + 65 + 65 + 65 + 120;
+        tablaReservaActual.getColumnModel().getColumn(0).setPreferredWidth(800 - anchoOtrasColumnas);
+        
+        JScrollPane tablaConScrollReservaActual = new JScrollPane(tablaReservaActual);
+        tablaConScrollReservaActual.setPreferredSize(new DimensionUIResource(800, 58));
+        tablaConScrollReservaActual.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        tablaConScrollReservaActual.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        
+        JPanel panelTablaReservaActual = CrearSubPanel.subPanel();
+        panelTablaReservaActual.add(tablaConScrollReservaActual);
+
+        labelEstadoUnidad = new JLabel("Estado de la Unidad");
+        JPanel panelEstadoUnidad = CrearSubPanel.subPanel();
+        panelEstadoUnidad.add(labelEstadoUnidad);
+
+        // --------------------------------------- Creación de elementos: (4 y 6) Ticket actual y Código/Fecha --------------------------------------------
+        botonMasInformacionTicket = new JButton("Ticket Actual: ?");
+
+        // Configuración del panel desplegable flotante hacia la derecha
+        JWindow popupInformacion = new JWindow();
+        JPanel panelFlotante = new JPanel();
+        panelFlotante.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(java.awt.Color.GRAY),
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+        panelFlotante.setBackground(new ColorUIResource(255, 255, 224)); 
+        panelFlotante.add(new JLabel("Muestre el código, ruta y fecha de la reserva actual para abordar la unidad."));
+        popupInformacion.add(panelFlotante);
+        popupInformacion.pack();
+
+        // Evento para mostrar y alternar el panel flotante al presionar el botón ?
+        botonMasInformacionTicket.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!popupInformacion.isVisible()) {
+                    java.awt.Point loc = botonMasInformacionTicket.getLocationOnScreen();
+                    popupInformacion.setLocation(loc.x + botonMasInformacionTicket.getWidth() + 5, loc.y);
+                    popupInformacion.setVisible(true);
+                } else {
+                    popupInformacion.setVisible(false);
+                }
+            }
+        });
+
+        // Evento para ocultar el panel cuando el cursor sale del botón
+        botonMasInformacionTicket.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent e) {
+                java.awt.Point p = e.getPoint();
+                java.awt.Component comp = botonMasInformacionTicket.getComponentAt(p);
+                if (comp == null) {
+                    popupInformacion.setVisible(false);
+                }
+            }
+        });
+        
+        // Evento para ocultar el panel si el cursor sale del panel flotante
+        panelFlotante.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent e) {
+                popupInformacion.setVisible(false);
+            }
+        });
+
+        JPanel panelTicketInfo = CrearSubPanel.subPanel();
+        panelTicketInfo.add(botonMasInformacionTicket);
+
+        String[] nombreColumnasTicketActual = {"Código", "Fecha de Reserva", "Ruta"};
+        filasTablaTicketActual = new DefaultTableModel(nombreColumnasTicketActual, 1){
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        tablaTicketActual = new JTable(filasTablaTicketActual);
+        tablaTicketActual.setRowHeight(30);
+        tablaTicketActual.getTableHeader().setReorderingAllowed(false);
+        tablaTicketActual.getTableHeader().setResizingAllowed(false);
+        
+        JScrollPane tablaConScrollTicketActual = new JScrollPane(tablaTicketActual);
+        tablaConScrollTicketActual.setPreferredSize(new DimensionUIResource(800, 150));
+        
+        JPanel panelTablaTicketActual = CrearSubPanel.subPanel();
+        panelTablaTicketActual.add(tablaConScrollTicketActual);
+
+        // --------------------------------------- Disposición en el panel de contenido interno -------------------------------------------- 
+        panelContenido.add(panelMVirtual);
+        panelContenido.add(panelTablaRutas);
+        panelContenido.add(panelComboPlaca);
+        panelContenido.add(panelBotonConfirmarReserva);
+        panelContenido.add(panelLabelReservaActual);
+        panelContenido.add(panelTablaReservaActual);
+        panelContenido.add(panelEstadoUnidad);
+        panelContenido.add(panelTicketInfo);
+        panelContenido.add(panelTablaTicketActual);
+
+        // Envolver todo el panel en un JScrollPane general para prevenir solapamientos
+        JScrollPane scrollPaneGeneral = new JScrollPane(panelContenido);
+        scrollPaneGeneral.setBorder(null);
+        scrollPaneGeneral.getVerticalScrollBar().setUnitIncrement(16);
+        
+        this.add(scrollPaneGeneral, BorderLayout.CENTER);
     }
+    
     // ----------------------------------------- Acceso para los controladores ---------------------------------------------------------
     public JButton getBotonMonederoVirtual(){
         return botonMonederoVirtual;
     }
+    
     public DefaultTableModel getModeloTablaRutas(){
         return filasTablaRutas;
+    }
+
+    public JComboBox<String> getComboPlaca() {
+        return comboPlaca;
+    }
+
+    public JButton getBotonConfirmarReserva() {
+        return botonConfirmarReserva;
+    }
+
+    public JLabel getLabelReservaActualDia() {
+        return labelReservaActualDia;
+    }
+
+    public JTable getTablaReservaActual() {
+        return tablaReservaActual;
+    }
+
+    public DefaultTableModel getFilasTablaReservaActual() {
+        return filasTablaReservaActual;
+    }
+
+    public JLabel getLabelEstadoUnidad() {
+        return labelEstadoUnidad;
+    }
+
+    public JButton getBotonMasInformacionTicket() {
+        return botonMasInformacionTicket;
+    }
+
+    public JTable getTablaTicketActual() {
+        return tablaTicketActual;
+    }
+
+    public DefaultTableModel getFilasTablaTicketActual() {
+        return filasTablaTicketActual;
     }
 }
