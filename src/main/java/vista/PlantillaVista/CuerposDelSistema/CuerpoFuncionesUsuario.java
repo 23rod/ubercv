@@ -23,6 +23,7 @@ public class CuerpoFuncionesUsuario extends JPanel {
     // Componentes nuevos basados en el borrador[cite: 2]
     private JComboBox<String> comboPlaca;
     private JButton botonConfirmarReserva;
+    private JButton botonEliminarReservaActual;
     private JLabel labelReservaActualDia;
     private JTable tablaReservaActual;
     private DefaultTableModel filasTablaReservaActual;
@@ -79,6 +80,11 @@ public class CuerpoFuncionesUsuario extends JPanel {
         botonConfirmarReserva = new JButton("Confirmar Reserva");
         JPanel panelBotonConfirmarReserva = CrearSubPanel.subPanel();
         panelBotonConfirmarReserva.add(botonConfirmarReserva);
+
+        //--------------------------------------- Creación del botón eliminar la reserva actual -----------------------------------------------------------------
+        botonEliminarReservaActual = new JButton("Eliminar Reserva");
+        JPanel panelbotonEliminarReservaActual = CrearSubPanel.subPanel();
+        panelbotonEliminarReservaActual.add(botonEliminarReservaActual);
 
         // --------------------------------------- Creación de elementos: (3) Reserva Actual para Día Actual --------------------------------------------
         labelReservaActualDia = new JLabel("Reserva Actual para Día Actual");
@@ -202,9 +208,10 @@ public class CuerpoFuncionesUsuario extends JPanel {
         panelContenido.add(panelMVirtual);
         panelContenido.add(panelTablaRutas);
         panelContenido.add(panelComboPlaca);
-        panelContenido.add(panelBotonConfirmarReserva);
+        panelContenido.add(panelBotonConfirmarReserva);        
         panelContenido.add(panelLabelReservaActual);
         panelContenido.add(panelTablaReservaActual);
+        panelContenido.add(botonEliminarReservaActual);
         panelContenido.add(panelEstadoUnidad);
         panelContenido.add(panelTicketInfo);
         panelContenido.add(panelTablaTicketActual);
@@ -218,6 +225,10 @@ public class CuerpoFuncionesUsuario extends JPanel {
     }
     
     // ----------------------------------------- Acceso para los controladores ---------------------------------------------------------
+    public String getPlacaSeleccionada(){
+        return (String)comboPlaca.getSelectedItem();
+    }
+    
     public JButton getBotonMonederoVirtual(){
         return botonMonederoVirtual;
     }
@@ -232,6 +243,10 @@ public class CuerpoFuncionesUsuario extends JPanel {
 
     public JButton getBotonConfirmarReserva() {
         return botonConfirmarReserva;
+    }
+
+    public JButton getBotonEliminarReserva(){
+        return botonEliminarReservaActual;
     }
 
     public JLabel getLabelReservaActualDia() {
