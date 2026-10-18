@@ -12,6 +12,7 @@ public class EncabezadoGeneral extends JPanel{
     private JLabel Logo;
     private JPanel ubicacionLogo;
     private JLabel labelNombre;
+    private JLabel labelCedula;
     private JLabel labelRol;
     private JLabel labelSaldo;
     private JPanel panelInfoUsuario;
@@ -35,6 +36,7 @@ public class EncabezadoGeneral extends JPanel{
         Logo.setFont(new FontUIResource("Inter",1,56));
         
         labelNombre = new JLabel("Usuario: "); // el modelo no tiene nombre real: se muestra el correo
+        labelCedula = new JLabel("Cédula: ");
         labelRol = new JLabel("Rol: ");
         labelSaldo = new JLabel("Saldo: ");
         
@@ -43,6 +45,7 @@ public class EncabezadoGeneral extends JPanel{
         panelInfoUsuario.setAlignmentY(JPanel.CENTER_ALIGNMENT);
         panelInfoUsuario.setBorder(BorderFactory.createEmptyBorder(0, 30, 0, 0)); // Espaciado controlado (aprox. 1 a 2 cm respecto al logo)
         panelInfoUsuario.add(labelNombre);
+        panelInfoUsuario.add(labelCedula);
         panelInfoUsuario.add(labelRol);
         panelInfoUsuario.add(labelSaldo);
         panelInfoUsuario.setVisible(false); // sin sesión (registro, pantallas públicas) no se muestra nada
@@ -90,6 +93,9 @@ public class EncabezadoGeneral extends JPanel{
     public JLabel getLabelNombre() {
         return labelNombre;
     }
+    public JLabel getLabelCedula() {
+        return labelCedula;
+    }
     public JLabel getLabelRol() {
         return labelRol;
     }
@@ -119,8 +125,14 @@ public class EncabezadoGeneral extends JPanel{
         return panelInfoUsuario.isVisible();
     }
 
+    /** Sobrecarga manteniendo compatibilidad o recibiendo la cédula opcionalmente. */
     public void setInfoUsuario(String usuario, String rol, String saldo) {
+        setInfoUsuario(usuario, "", rol, saldo);
+    }
+
+    public void setInfoUsuario(String usuario, String cedula, String rol, String saldo) {
         labelNombre.setText("Usuario: " + usuario);
+        labelCedula.setText("Cédula: " + (cedula == null ? "" : cedula));
         labelRol.setText("Rol: " + rol);
         labelSaldo.setText("Saldo: " + saldo);
         this.revalidate();

@@ -158,7 +158,7 @@ class ControlPrincipal {
         Rol rol = usuario.getRol();
         boolean pagaPasajes = rol == Rol.ESTUDIANTE || rol == Rol.EMPLEADO || rol == Rol.PUBLICO_GENERAL;
         String saldo = pagaPasajes ? Dinero.formatear(servicioMonedero.saldo(usuario.getCorreo())) : "-";
-        encabezado.setInfoUsuario(usuario.getCorreo(), rol.getEtiqueta(), saldo);
+        encabezado.setInfoUsuario(usuario.getCorreo(), usuario.getCedula(), rol.getEtiqueta(), saldo);
         encabezado.mostrarSaldo(pagaPasajes);
         encabezado.mostrarInfoUsuario(true);
     }
