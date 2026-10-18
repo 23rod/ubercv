@@ -50,27 +50,27 @@ public class CuerpoGestionTarifas extends JPanel{
         JPanel panelBotonActualizarTarifa = CrearSubPanel.subPanel();
         panelBotonActualizarTarifa.add(campoActualizarTarifa);
         
-        // Creacion del placeholder Estudiante 
-        JLabel estudiantesLabel = new JLabel("Tarifa para estudiantes (10-20%): ");
+        // Creacion del campo de descuento para Estudiante (10-20%)
+        JLabel estudiantesLabel = new JLabel("Descuento para estudiantes (%): ");
         campoPorcentajeEstudiante = new JTextField(20);
         JPanel panelEstudiantePorcentaje = CrearSubPanel.subPanel(); 
         panelEstudiantePorcentaje.add(estudiantesLabel);
         panelEstudiantePorcentaje.add(campoPorcentajeEstudiante);
         
-        // Creacion del placeholder Empleado 
-        JLabel empleadosLabel = new JLabel("Tarifa para Empleados (30-60%): ");
+        // Creacion del campo de descuento para Empleado (30-60%)
+        JLabel empleadosLabel = new JLabel("Descuento para empleados (%): ");
         campoPorcentajeEmpleado = new JTextField(20);
         JPanel panelEmpleadoTarifa = CrearSubPanel.subPanel(); 
         panelEmpleadoTarifa.add(empleadosLabel);
         panelEmpleadoTarifa.add(campoPorcentajeEmpleado);
         
-        // Creacion del boton Guardar Porcentajes
-        campoGuardarPorcentaje = new JButton("Guardar Porcentajes");
+        // Creacion del boton Guardar Descuentos
+        campoGuardarPorcentaje = new JButton("Guardar Descuentos");
         JPanel panelBotonGuardarPorcentaje = CrearSubPanel.subPanel();
         panelBotonGuardarPorcentaje.add(campoGuardarPorcentaje);
 
-        // Cracion de la tabla de rutas
-        String[] nombreColumnas = {"Nombre de Ruta", "Tarifa", "Estudiante", "Empleado", "Publico General"};
+        // Creacion de la tabla de rutas con importes finales a pagar
+        String[] nombreColumnas = {"Nombre de Ruta", "Tarifa Base", "Importe Estudiante", "Importe Empleado", "Importe Público General"};
         filasTablaRutas = new DefaultTableModel(nombreColumnas,3){ // Contenedor "dinamico" de las filas de la tabla (AQUI SE MODIFICA LA CANTIDAD DE FILAS)
             @Override                                                                // Metodo que evita que las celdas sean modificadas por el usuario
             public boolean isCellEditable(int row, int column) {
@@ -82,10 +82,10 @@ public class CuerpoGestionTarifas extends JPanel{
         tablaRutas.getTableHeader().setReorderingAllowed(false);
         tablaRutas.getTableHeader().setResizingAllowed(false);
         tablaRutas.getColumnModel().getColumn(0).setPreferredWidth(140); // Nombre de Ruta
-        tablaRutas.getColumnModel().getColumn(1).setPreferredWidth(60);  // Tarifa
-        tablaRutas.getColumnModel().getColumn(2).setPreferredWidth(80);  // Estudiante
-        tablaRutas.getColumnModel().getColumn(3).setPreferredWidth(80);  // Empleado
-        tablaRutas.getColumnModel().getColumn(4).setPreferredWidth(145); // Publico General
+        tablaRutas.getColumnModel().getColumn(1).setPreferredWidth(80);  // Tarifa Base
+        tablaRutas.getColumnModel().getColumn(2).setPreferredWidth(110); // Importe Estudiante
+        tablaRutas.getColumnModel().getColumn(3).setPreferredWidth(110); // Importe Empleado
+        tablaRutas.getColumnModel().getColumn(4).setPreferredWidth(155); // Importe Público General
         
         JScrollPane tablaConScroll = new JScrollPane(tablaRutas); //Metodo para garantizar la graficacion y visualizacion de una tabla de N filas
         tablaConScroll.setPreferredSize(new DimensionUIResource(920, 150));
@@ -125,7 +125,7 @@ public class CuerpoGestionTarifas extends JPanel{
     public JButton getBotonGuardarPorcentajes(){
         return campoGuardarPorcentaje;
     }
-    // El controlador muestra aqui los porcentajes que estan vigentes (por ejemplo "15" y "45")
+    // El controlador muestra aqui los porcentajes de descuento vigentes (por ejemplo "15" y "45")
     public void mostrarPorcentajes(String estudiante, String empleado){
         campoPorcentajeEstudiante.setText(estudiante);
         campoPorcentajeEmpleado.setText(empleado);

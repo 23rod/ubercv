@@ -34,7 +34,7 @@ public class EncabezadoGeneral extends JPanel{
         Logo.setForeground(new ColorUIResource(0,0,0));
         Logo.setFont(new FontUIResource("Inter",1,56));
         
-        labelNombre = new JLabel("Nombre: ");
+        labelNombre = new JLabel("Usuario: "); // el modelo no tiene nombre real: se muestra el correo
         labelRol = new JLabel("Rol: ");
         labelSaldo = new JLabel("Saldo: ");
         
@@ -45,6 +45,7 @@ public class EncabezadoGeneral extends JPanel{
         panelInfoUsuario.add(labelNombre);
         panelInfoUsuario.add(labelRol);
         panelInfoUsuario.add(labelSaldo);
+        panelInfoUsuario.setVisible(false); // sin sesión (registro, pantallas públicas) no se muestra nada
 
         ubicacionLogo.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0)); // Ubicacion del Logo
         ubicacionLogo.add(Logo);
@@ -107,8 +108,19 @@ public class EncabezadoGeneral extends JPanel{
         this.repaint();
     }
 
-    public void setInfoUsuario(String nombre, String rol, String saldo) {
-        labelNombre.setText("Nombre: " + nombre);
+    /** Muestra u oculta todo el panel informativo (usuario, rol y saldo); solo debe verse con sesión iniciada. */
+    public void mostrarInfoUsuario(boolean visible) {
+        panelInfoUsuario.setVisible(visible);
+        this.revalidate();
+        this.repaint();
+    }
+
+    public boolean isInfoUsuarioVisible() {
+        return panelInfoUsuario.isVisible();
+    }
+
+    public void setInfoUsuario(String usuario, String rol, String saldo) {
+        labelNombre.setText("Usuario: " + usuario);
         labelRol.setText("Rol: " + rol);
         labelSaldo.setText("Saldo: " + saldo);
         this.revalidate();

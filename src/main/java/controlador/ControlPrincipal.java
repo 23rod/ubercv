@@ -4,7 +4,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import modelo.Resultado;
 import modelo.Rol;
+import modelo.Usuario;
+import servicio.ServicioMonedero;
 import servicio.ServicioUsuarios;
+import servicio.ServicioReservas;
+import utilidades.Dinero;
+import vista.PlantillaVista.EncabezadoGeneral;
 import vista.PlantillaVista.PanelEstadoUnidad;
 import vista.PlantillaVista.PanelGestionRutas;
 import vista.PlantillaVista.VistaConcreta;
@@ -30,10 +35,14 @@ class ControlPrincipal {
     private final ControlTarifas controlTarifas;
     private final ControlRecargas controlRecargas;
     private final ControlMonedero controlMonedero;
+    private final ServicioReservas servicioReservas;
+    private final ServicioMonedero servicioMonedero;
 
     ControlPrincipal(ServicioUsuarios servicioUsuarios, Navegador navegador, ControlSesion controlSesion,
                      ControlFlota controlFlota, ControlItinerarios controlItinerarios, ControlTarifas controlTarifas,
-                     ControlRecargas controlRecargas, ControlMonedero controlMonedero) {
+                     ControlRecargas controlRecargas, ControlMonedero controlMonedero,
+                     ServicioReservas servicioReservas, ServicioMonedero servicioMonedero) {
+        this.servicioMonedero = servicioMonedero;
         this.servicioUsuarios = servicioUsuarios;
         this.navegador = navegador;
         this.controlSesion = controlSesion;
@@ -42,6 +51,7 @@ class ControlPrincipal {
         this.controlTarifas = controlTarifas;
         this.controlRecargas = controlRecargas;
         this.controlMonedero = controlMonedero;
+        this.servicioReservas = servicioReservas;
     }
 
     /** HU02: tras iniciar sesión, la pantalla depende del rol. */
@@ -66,14 +76,14 @@ class ControlPrincipal {
                 cuerpo = menuConductor;
                 break;
             default: // ESTUDIANTE, EMPLEADO y PUBLICO_GENERAL
-                menuPasajero = new CuerpoFuncionesUsuario();
-                controlItinerarios.llenarTablaRutas(menuPasajero.getModeloTablaRutas(), false);
+                menuPasajero = new CuerpoFuncionesUsuario(); // la tabla de rutas la llena su controlador al conectarse
                 cuerpo = menuPasajero;
         }
 
         VistaConcreta vista = new VistaConcreta(cuerpo);
         navegador.prepararVentana(vista, true);
         vista.getEncabezadoGeneral().getBotonCerrarSesion().addActionListener(e -> controlSesion.cerrarSesion());
+        actualizarEncabezado(vista);
         if (menuAdmin != null) {
             conectarMenuAdmin(vista, menuAdmin);
         }
@@ -119,9 +129,38 @@ class ControlPrincipal {
         });
     }
 
-    /** Menú del pasajero: Monedero Virtual (saldo, historial y recarga por pago móvil). */
+    /** Menú del pasajero: Monedero Virtual (saldo, historial y recarga por pago móvil) y reservas. */
     private void conectarMenuPasajero(VistaConcreta vista, CuerpoFuncionesUsuario menu) {
-        menu.getBotonMonederoVirtual().addActionListener(e -> controlMonedero.abrir(vista, () -> vista.mostrarCuerpo(menu)));
+        Runnable refrescarEncabezado = () -> actualizarEncabezado(vista);
+        ControladorReservas reservas = new ControladorReservas(servicioReservas, menu,
+                () -> controlItinerarios.llenarTablaRutasPasajero(menu.getModeloTablaRutas()), refrescarEncabezado);
+        // al volver del monedero se relee todo: saldo, disponibilidad, precio y estado de las unidades
+        Runnable volverAlMenu = () -> {
+            reservas.refrescar();
+            refrescarEncabezado.run();
+            vista.mostrarCuerpo(menu);
+        };
+        menu.getBotonMonederoVirtual().addActionListener(e -> controlMonedero.abrir(vista, volverAlMenu, refrescarEncabezado));
+        reservas.conectar();
+    }
+
+    /**
+     * Cabecera con sesión: correo (el modelo no guarda un nombre), rol legible y, para quien paga pasajes,
+     * el saldo actual leído del servicio compartido. Sin sesión el panel se oculta completo.
+     */
+    private void actualizarEncabezado(VistaConcreta vista) {
+        EncabezadoGeneral encabezado = vista.getEncabezadoGeneral();
+        Usuario usuario = servicioUsuarios.getUsuarioSesion();
+        if (usuario == null) {
+            encabezado.mostrarInfoUsuario(false);
+            return;
+        }
+        Rol rol = usuario.getRol();
+        boolean pagaPasajes = rol == Rol.ESTUDIANTE || rol == Rol.EMPLEADO || rol == Rol.PUBLICO_GENERAL;
+        String saldo = pagaPasajes ? Dinero.formatear(servicioMonedero.saldo(usuario.getCorreo())) : "-";
+        encabezado.setInfoUsuario(usuario.getCorreo(), rol.getEtiqueta(), saldo);
+        encabezado.mostrarSaldo(pagaPasajes);
+        encabezado.mostrarInfoUsuario(true);
     }
 
     private boolean accesoAdmin(VistaConcreta vista) {

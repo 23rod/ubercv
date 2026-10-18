@@ -22,5 +22,6 @@ public final class MensajesMonedero {
     public static final String CEDULA_PAGO_INVALIDA = "- Cédula: debe tener entre 5 y 10 dígitos, sin letras ni puntos";
     public static final String TELEFONO_INVALIDO = "- Teléfono: debe tener 11 dígitos, sin guiones ni espacios";
     public static final String REFERENCIA_INVALIDA = "- Referencia: debe tener entre 6 y 12 dígitos";
+    public static final String MONTO_PAGO_EXCESIVO = "- Monto: es demasiado grande; el máximo permitido es 999999999.99 (hasta 9 dígitos enteros y 2 decimales)";
     public static final String MONTO_PAGO_INVALIDO = "- Monto: debe ser mayor que cero, con hasta dos decimales";
 }

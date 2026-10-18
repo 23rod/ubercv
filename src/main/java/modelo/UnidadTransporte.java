@@ -6,7 +6,6 @@ public class UnidadTransporte {
     private final String placa;
     private final String modelo;
     private final int capacidad;
-    private int cupos;
     private EstadoUnidad estado;
     private String nombreRuta;
     private String cedulaConductor;
@@ -37,11 +36,4 @@ public class UnidadTransporte {
         return cedulaConductor != null && !cedulaConductor.isBlank();
     }
 
-    public int getCupos(){
-        return this.cupos;
-    }
-
-    public void setCupos(int cupos){
-        this.cupos = cupos;
-    }
 }

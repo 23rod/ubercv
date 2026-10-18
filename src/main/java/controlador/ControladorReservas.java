@@ -1,160 +1,272 @@
 package controlador;
 
-import java.util.List;
+import java.awt.Component;
 import java.math.BigDecimal;
-import java.time.LocalTime;
 import java.util.ArrayList;
-import modelo.UnidadTransporte;
-import modelo.Usuario;
-import persistencia.interfaces.IRepositorioUnidades;
-import persistencia.interfaces.IRepositorioUsuarios;
-import servicio.ServicioFlota;
-import servicio.ServicioMonedero;
-import servicio.ServicioUsuarios;
+import java.util.List;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
-import vista.PlantillaVista.CuerposDelSistema.CuerpoFuncionesUsuario;
-import modelo.Ruta;
+import javax.swing.JTable;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.table.DefaultTableModel;
 import modelo.EstadoUnidad;
-import modelo.MensajesMonedero;
-import modelo.Ticket;
-import modelo.TipoRuta;
 import modelo.Reserva;
-import modelo.Rol;
+import modelo.Resultado;
+import modelo.Ticket;
+import servicio.ServicioReservas;
+import utilidades.Dinero;
+import vista.PlantillaVista.CuerposDelSistema.CuerpoFuncionesUsuario;
 
-public class ControladorReservas {    
-    //Vista asignada a este controlador
-    private CuerpoFuncionesUsuario cuerpoFuncionesUsuario;
-    //--
-    private ServicioFlota servicioFlota;
-    private ServicioUsuarios servicioUsuarios;
-    private CuerpoFuncionesUsuario vistaActual;
-    private IRepositorioUnidades flota;
-    private IRepositorioUsuarios usuarioIniciado;
-    private ServicioMonedero servicioMonedero;
+/** Adaptador Swing del módulo de reservas. Las reglas de negocio viven en ServicioReservas. */
+public final class ControladorReservas {
 
-    public ControladorReservas(IRepositorioUnidades flota,
-    IRepositorioUsuarios usuarioIniciado, CuerpoFuncionesUsuario vistaActual,
-    ServicioFlota servicioFlota, ServicioUsuarios servicioUsuarios,
-    CuerpoFuncionesUsuario cuerpoFuncionesUsuario ){
-        this.flota = flota;
-        this.usuarioIniciado = usuarioIniciado;
-        this.vistaActual = vistaActual;
-        this.servicioFlota = servicioFlota;
-        this.servicioUsuarios = servicioUsuarios;
-        this.cuerpoFuncionesUsuario = cuerpoFuncionesUsuario;
+    /** Diálogos que usa el controlador; se separan para poder probar el flujo sin ventanas reales. */
+    interface Dialogos {
+        void mensaje(Component padre, String texto);
+
+        boolean confirmar(Component padre, String texto, String titulo);
     }
 
-    //Listar las placas de las unidades para llenar el listado de placas
-    //Se utiliza para cargar las unidades con cupos disponibles.
-    private String[] unidadesConCupo(){
-        List<UnidadTransporte> unidades= flota.listar();
-        List<String> unidadesConCupo = new ArrayList<>();
-        
-        for(int i=0; i<unidades.size(); i++){
-            if(unidades.get(i).getCupos() > 0){
-                unidadesConCupo.add(unidades.get(i).getPlaca()); 
-            }
+    private static final Dialogos DIALOGOS_SWING = new Dialogos() {
+        @Override
+        public void mensaje(Component padre, String texto) {
+            JOptionPane.showMessageDialog(padre, texto);
         }
 
-        String[] arreglo=  unidadesConCupo.toArray(new String[unidadesConCupo.size()]);
-        return arreglo;
+        @Override
+        public boolean confirmar(Component padre, String texto, String titulo) {
+            return JOptionPane.showConfirmDialog(padre, texto, titulo, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+        }
+    };
+
+    private final ServicioReservas servicioReservas;
+    private final CuerpoFuncionesUsuario vista;
+    private final Runnable cargarTablaRutas;
+    private final Runnable alCambiarSaldo;
+    private final Dialogos dialogos;
+    private boolean conectado;
+    private boolean actualizando; // ignora los listeners mientras se recargan las tablas
+    private List<Reserva> mostradas = new ArrayList<>(); // reservas en el mismo orden que las filas de las tablas
+
+    /**
+     * @param cargarTablaRutas rellena la tabla de rutas del pasajero (capacidad y puestos disponibles)
+     * @param alCambiarSaldo   se ejecuta cuando una reserva o cancelación mueve dinero, para refrescar el encabezado
+     */
+    public ControladorReservas(ServicioReservas servicioReservas, CuerpoFuncionesUsuario vista,
+                               Runnable cargarTablaRutas, Runnable alCambiarSaldo) {
+        this(servicioReservas, vista, cargarTablaRutas, alCambiarSaldo, DIALOGOS_SWING);
     }
 
-    //Lógica completa para reservar un cupo:
-    //1 Activarse una vez se hace click en "Confirmar Reserva"
-    //2 Revisar si el usuario tiene suficiente saldo
-    //3 Modificar los cupos de la unidad  
-    //4 Crear y guardar la reserva dada y exponerla al usuario: Nombre de Ruta, Tipo de Ruta, Inicio, Final, Placa, Estado de la Unidad
-    //6 Generar el ticket con: código, fecha de reserva y ruta.
-    //
+    ControladorReservas(ServicioReservas servicioReservas, CuerpoFuncionesUsuario vista,
+                        Runnable cargarTablaRutas, Runnable alCambiarSaldo, Dialogos dialogos) {
+        this.servicioReservas = java.util.Objects.requireNonNull(servicioReservas);
+        this.vista = java.util.Objects.requireNonNull(vista);
+        this.cargarTablaRutas = java.util.Objects.requireNonNull(cargarTablaRutas);
+        this.alCambiarSaldo = java.util.Objects.requireNonNull(alCambiarSaldo);
+        this.dialogos = java.util.Objects.requireNonNull(dialogos);
+    }
 
-    private void reservarCupo(Ruta ruta, String placaUnidad){
-        
-        if(!esfondoSuficiente(ruta)){
-            JOptionPane.showMessageDialog(null, MensajesMonedero.SALDO_INSUFICIENTE);
+    public void conectar() {
+        if (conectado) return;
+        conectado = true;
+        vista.getTablaRutas().getSelectionModel().addListSelectionListener(this::alCambiarSeleccionRuta);
+        vista.getBotonConfirmarReserva().addActionListener(e -> reservarSeleccionada());
+        vista.getBotonEliminarReserva().addActionListener(e -> cancelarReservaSeleccionada());
+
+        // Sincronizar selección entre la tabla de reservas y la de tickets
+        vista.getTablaReservaActual().getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && !actualizando) {
+                sincronizarSeleccion(vista.getTablaReservaActual(), vista.getTablaTicketActual());
+            }
+        });
+        vista.getTablaTicketActual().getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && !actualizando) {
+                sincronizarSeleccion(vista.getTablaTicketActual(), vista.getTablaReservaActual());
+            }
+        });
+
+        refrescar();
+    }
+
+    /** Vuelve a leer rutas (disponibilidad), unidades, precio y reservas; se usa al abrir y al volver a la pantalla. */
+    public void refrescar() {
+        refrescarTablaRutas();
+        actualizarReservaActual();
+    }
+
+    private void sincronizarSeleccion(JTable origen, JTable destino) {
+        int fila = origen.getSelectedRow();
+        if (fila >= 0 && fila < destino.getRowCount() && destino.getSelectedRow() != fila) {
+            actualizando = true;
+            try {
+                destino.setRowSelectionInterval(fila, fila);
+            } finally {
+                actualizando = false;
+            }
+        }
+        actualizarDetalleSeleccionado();
+    }
+
+    private void alCambiarSeleccionRuta(ListSelectionEvent evento) {
+        if (evento.getValueIsAdjusting() || actualizando) return;
+        actualizarPlacasDisponibles();
+        actualizarPrecio();
+    }
+
+    private String rutaSeleccionada() {
+        int fila = vista.getTablaRutas().getSelectedRow();
+        if (fila < 0) return null;
+        int filaModelo = vista.getTablaRutas().convertRowIndexToModel(fila);
+        Object valor = vista.getModeloTablaRutas().getValueAt(filaModelo, 0);
+        return valor == null ? null : valor.toString();
+    }
+
+    /** Recarga la tabla de rutas conservando la ruta elegida (recargar vacía la selección de la tabla). */
+    private void refrescarTablaRutas() {
+        String previa = rutaSeleccionada();
+        actualizando = true;
+        try {
+            cargarTablaRutas.run();
+            JTable tabla = vista.getTablaRutas();
+            int fila = -1;
+            for (int i = 0; previa != null && i < vista.getModeloTablaRutas().getRowCount(); i++) {
+                if (previa.equals(String.valueOf(vista.getModeloTablaRutas().getValueAt(i, 0)))) {
+                    fila = i;
+                    break;
+                }
+            }
+            if (fila < 0 && tabla.getRowCount() > 0) fila = 0;
+            if (fila >= 0) {
+                int filaVista = tabla.convertRowIndexToView(fila);
+                tabla.setRowSelectionInterval(filaVista, filaVista);
+            }
+        } finally {
+            actualizando = false;
+        }
+        actualizarPlacasDisponibles();
+        actualizarPrecio();
+    }
+
+    private void actualizarPlacasDisponibles() {
+        List<String> disponibles = servicioReservas.placasDisponiblesHoy(rutaSeleccionada());
+        DefaultComboBoxModel<String> modelo = new DefaultComboBoxModel<>();
+        modelo.addElement("Ninguna");
+        for (String placa : disponibles) modelo.addElement(placa);
+        vista.getComboPlaca().setModel(modelo);
+        if (!disponibles.isEmpty()) vista.getComboPlaca().setSelectedIndex(1);
+    }
+
+    /** Muestra el importe final calculado por el servicio para el usuario autenticado y la ruta elegida. */
+    private void actualizarPrecio() {
+        String ruta = rutaSeleccionada();
+        if (ruta == null) {
+            vista.getLabelPrecioReserva().setText("Precio a pagar: -");
             return;
         }
-        //Buscamos la placa de la unidad y restamos un cupo
-        esfondoSuficiente(ruta);
-        restarCupo(placaUnidad);
+        BigDecimal importe = servicioReservas.importeEstimado(ruta);
+        vista.getLabelPrecioReserva().setText(importe.signum() <= 0
+                ? "Precio a pagar: 0.00 (sin cobro)"
+                : "Precio a pagar: " + Dinero.formatear(importe));
     }
 
-    //2 Lógica de pago: Tipo de Ruta y Tipo de Usuario
-    // Solo se cobra si es una ruta extraurbana
-    private boolean esfondoSuficiente(Ruta ruta){
-        BigDecimal saldoUsuario = servicioMonedero.saldo(servicioUsuarios.getUsuarioSesion().getCorreo());
-        Rol rolUsuario = servicioUsuarios.getUsuarioSesion().getRol();
-
-        //Cobrar de una vez
-        if(ruta.getTipo() == TipoRuta.desdeTexto("Extraurbana")){
-            if(rolUsuario == Rol.desdeTexto("estudiante")){
-                //Se debita del 10% al 20% del precio: 15%
-            }
-            else if(rolUsuario == Rol.desdeTexto("empleado")){
-                //Se debita del 30% al 60% del precio: 45%
-            }
-            else if(rolUsuario == Rol.desdeTexto("publico general")){
-                //Se debita el 100% del precio
-            }
+    private void reservarSeleccionada() {
+        Resultado<Reserva> resultado = servicioReservas.reservar(rutaSeleccionada(), vista.getPlacaSeleccionada());
+        dialogos.mensaje(vista, resultado.getMensaje());
+        if (resultado.isOk()) {
+            refrescar();
+            alCambiarSaldo.run();
         }
-        else{//Si es urbana 
-            //Debitar con monto 0 servicioMonedero.debitar(correo,0,descripcion)
+    }
+
+    /** Reserva elegida en la tabla, o null si no hay una selección válida (nunca se asume la primera). */
+    private Reserva reservaSeleccionada() {
+        JTable tabla = vista.getTablaReservaActual();
+        int fila = tabla.getSelectedRow();
+        if (fila < 0) return null;
+        int filaModelo = tabla.convertRowIndexToModel(fila);
+        return filaModelo < mostradas.size() ? mostradas.get(filaModelo) : null;
+    }
+
+    private void cancelarReservaSeleccionada() {
+        if (mostradas.isEmpty()) {
+            dialogos.mensaje(vista, "No tienes reservas activas para hoy.");
+            return;
         }
-        
+        Reserva seleccionada = reservaSeleccionada();
+        if (seleccionada == null) {
+            dialogos.mensaje(vista, "Seleccione en la tabla la reserva que desea cancelar.");
+            return;
+        }
+        boolean confirmado = dialogos.confirmar(vista,
+                "¿Deseas cancelar la reserva de " + seleccionada.getNombreRuta()
+                        + " (Ticket: " + seleccionada.getTicketDeLaReserva().getCodigo() + ")?",
+                "Confirmar cancelación");
+        if (!confirmado) return;
 
-        return true;
+        Resultado<Reserva> resultado = servicioReservas.cancelar(seleccionada.getTicketDeLaReserva().getCodigo());
+        dialogos.mensaje(vista, resultado.getMensaje());
+        if (resultado.isOk()) {
+            refrescar();
+            alCambiarSaldo.run();
+        }
     }
 
-
-        //3 Metodo a realizarse una vez se reserva un cupo
-    private void restarCupo(String placaUnidad){
-        UnidadTransporte aCambiar = flota.buscarPorPlaca(placaUnidad); 
-        aCambiar.setCupos(aCambiar.getCupos()-1);
-        //Reducir en uno los cupos disponibles de una unidad y actualizar en la persistencia vólatil y no volátil
-        flota.actualizar(aCambiar);
+    /** Texto del estado ACTUAL de la unidad (no la instantánea guardada al reservar). */
+    private String estadoActualTexto(Reserva reserva) {
+        EstadoUnidad estado = servicioReservas.estadoActualDeUnidad(reserva.getPlacaUnidad());
+        if (estado == null) return reserva.getEstadoUnidad() + " (sin datos actuales)";
+        return estado == EstadoUnidad.ACTIVO ? estado.getEtiqueta()
+                : estado.getEtiqueta() + CuerpoFuncionesUsuario.MARCA_NO_OPERATIVA;
     }
 
-    //4 Crear y guardarla reserva : la tabla de arriba del todo de cuerpoFunciones usuarios
-    //                     tiene el nombre de la ruta y el tipo. Hay que ver como tomar la fila y
-    //                      usar esos datos para crear LA RESERVA Y EL TICKET
-    //                      El importeCobrado vendrá de la lógica de debitar del servicio de monedero o una reutilizacion de esa logica
-    //                      en esta clase.
-    private Reserva crearReserva(Ruta ruta,EstadoUnidad estadoUnidad, BigDecimal importeCobrado){
-        Reserva nuevaReserva = new Reserva(
-                                        ruta.getNombre() ,
-                                        ruta.getTipo().toString() ,
-                                        estadoUnidad.toString() ,
-                                        ruta.getInicioJornada(),ruta.getFinJornada() ,
-                                        this.generarTicket(ruta.getNombre()) ,
-                                        this.servicioUsuarios.getUsuarioSesion().getCorreo() ,
-                                        importeCobrado);
-
+    private void actualizarDetalleSeleccionado() {
+        Reserva r = reservaSeleccionada();
+        if (r == null) {
+            vista.getBotonMasInformacionTicket().setText("Ticket Actual: ?");
+        } else {
+            vista.getBotonMasInformacionTicket().setText("Ticket Actual: " + r.getTicketDeLaReserva().getCodigo());
+        }
+        vista.getBotonEliminarReserva().setEnabled(r != null);
     }
 
-    //5 Guardar la reserva
-    
+    private void actualizarReservaActual() {
+        Reserva previa = reservaSeleccionada();
+        String codigoPrevio = previa == null ? null : previa.getTicketDeLaReserva().getCodigo();
 
-
-    //6 Generar y guardar el ticket
-    private Ticket generarTicket(String nombreRuta){
-        return new Ticket(nombreRuta);
+        mostradas = new ArrayList<>(servicioReservas.reservasActivasDelDia());
+        DefaultTableModel tablaReserva = vista.getFilasTablaReservaActual();
+        DefaultTableModel tablaTicket = vista.getFilasTablaTicketActual();
+        actualizando = true;
+        try {
+            tablaReserva.setRowCount(0);
+            tablaTicket.setRowCount(0);
+            if (mostradas.isEmpty()) {
+                tablaReserva.addRow(new Object[] {"-", "-", "-", "-", "-", "-"});
+                tablaTicket.addRow(new Object[] {"-", "-", "-", "-"});
+            }
+            int seleccion = mostradas.size() == 1 ? 0 : -1; // con una sola reserva no hay ambigüedad
+            for (int i = 0; i < mostradas.size(); i++) {
+                Reserva actual = mostradas.get(i);
+                Ticket ticket = actual.getTicketDeLaReserva();
+                tablaReserva.addRow(new Object[] {
+                        actual.getNombreRuta(), actual.getTipoRuta(), actual.getInicio(), actual.getFin(),
+                        actual.getPlacaUnidad(), estadoActualTexto(actual)
+                });
+                tablaTicket.addRow(new Object[] {
+                        ticket.getCodigo(), ticket.getFechaReserva(), ticket.getNombreRuta(),
+                        Dinero.formatear(actual.getImporteCobrado())
+                });
+                if (ticket.getCodigo().equals(codigoPrevio)) seleccion = i;
+            }
+            vista.getTablaReservaActual().clearSelection();
+            vista.getTablaTicketActual().clearSelection();
+            if (seleccion >= 0) {
+                vista.getTablaReservaActual().setRowSelectionInterval(seleccion, seleccion);
+                vista.getTablaTicketActual().setRowSelectionInterval(seleccion, seleccion);
+            }
+        } finally {
+            actualizando = false;
+        }
+        actualizarDetalleSeleccionado();
     }
-
-    
-
-    //==============================================HU7b==================================================================//
-    //LOGICA DE PERMANENCIA DE LA RESERVA ACTUAL
-    //UNA VEZ LA HORA ACTUAL SEA IGUAL A LA HORA DEL FINAL DE LA RUTA SE ELIMINA LA RESERVA ACTUAL====================//
-    private boolean esFinalDeRuta(Ruta ruta, LocalTime horaActual){
-        return ruta.getFinJornada() == horaActual;
-    }
-
-    private void eliminarReserva(){
-        
-    }
-
-    
-
-
-
 }

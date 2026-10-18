@@ -1,56 +1,69 @@
 package modelo;
 
+import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.security.SecureRandom; 
+import java.util.Objects;
+import utilidades.Dinero;
 
-public class Ticket {
+/** Comprobante inmutable emitido al reservar un puesto. */
+public final class Ticket {
+    private static final String CARACTERES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     private final String codigo;
-    private final String fechaReserva;
-    private String nombreRuta;
+    private final LocalDate fechaReserva;
+    private final String nombreRuta;
+    private final BigDecimal importeCobrado;
 
-    public Ticket(String nombreRuta){
-        this.nombreRuta = nombreRuta;
-        
-        //Fecha actual       
-        LocalDate fechaHoy = LocalDate.now();     
-        // Darle un formato personalizado
-        DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        String fechaFormateada = fechaHoy.format(formato);
-        this.fechaReserva = fechaFormateada;
-
-        //Codigo
-        this.codigo = generarStringAleatorio(8);   
-
-
+    /** Constructor compatible con el modelo anterior. */
+    public Ticket(String nombreRuta) {
+        this(generarCodigo(), nombreRuta, LocalDate.now(), Dinero.CERO);
     }
 
-    
+    public Ticket(String nombreRuta, BigDecimal importeCobrado) {
+        this(generarCodigo(), nombreRuta, LocalDate.now(), importeCobrado);
+    }
 
-    //Generar un codigo aleatorio 
-    private static final String CARACTERES = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    private static final SecureRandom RANDOM = new SecureRandom();
-    private static String generarStringAleatorio(int longitud) {
-        StringBuilder sb = new StringBuilder(longitud);
-        for (int i = 0; i < longitud; i++) {
-            int indice = RANDOM.nextInt(CARACTERES.length());
-            sb.append(CARACTERES.charAt(indice));
+    public Ticket(String nombreRuta, BigDecimal importeCobrado, LocalDate fechaReserva) {
+        this(generarCodigo(), nombreRuta, fechaReserva, importeCobrado);
+    }
+
+    /** Constructor para reconstruir un ticket persistido; el código no se vuelve a generar. */
+    public Ticket(String codigo, String nombreRuta, LocalDate fechaReserva, BigDecimal importeCobrado) {
+        if (codigo == null || codigo.isBlank()) {
+            throw new IllegalArgumentException("El código del ticket es obligatorio.");
+        }
+        if (nombreRuta == null || nombreRuta.isBlank()) {
+            throw new IllegalArgumentException("La ruta del ticket es obligatoria.");
+        }
+        this.codigo = codigo.trim();
+        this.nombreRuta = nombreRuta.trim();
+        this.fechaReserva = Objects.requireNonNull(fechaReserva, "La fecha del ticket es obligatoria.");
+        this.importeCobrado = Dinero.redondear(importeCobrado == null ? Dinero.CERO : importeCobrado);
+        if (this.importeCobrado.signum() < 0) {
+            throw new IllegalArgumentException("El importe del ticket no puede ser negativo.");
+        }
+    }
+
+    private static String generarCodigo() {
+        StringBuilder sb = new StringBuilder(8);
+        for (int i = 0; i < 8; i++) {
+            sb.append(CARACTERES.charAt(RANDOM.nextInt(CARACTERES.length())));
         }
         return sb.toString();
     }
 
-    //Getters 
-    public String getCodigo(){
-        return this.codigo;
-    }
+    public String getCodigo() { return codigo; }
 
-    public String getFechaReserva(){
-        return this.fechaReserva;
-    }
+    /** Fecha en el formato que ya esperaba la interfaz. */
+    public String getFechaReserva() { return fechaReserva.format(FORMATO_FECHA); }
 
-    public String getNombreRuta(){
-        return this.nombreRuta;
-    }
+    public LocalDate getFechaReservaDate() { return fechaReserva; }
 
+    public String getNombreRuta() { return nombreRuta; }
 
+    public BigDecimal getImporteCobrado() { return importeCobrado; }
 }

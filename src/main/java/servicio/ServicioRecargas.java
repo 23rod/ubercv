@@ -80,7 +80,9 @@ public class ServicioRecargas {
             errores.add(MensajesMonedero.REFERENCIA_INVALIDA);
         }
         BigDecimal valor = Dinero.parsearDecimal(monto);
-        if (valor == null || valor.signum() <= 0) {
+        if (valor == null && texto(monto).matches("\\d{10,}([.,]\\d{1,2})?")) {
+            errores.add(MensajesMonedero.MONTO_PAGO_EXCESIVO); // número bien escrito pero fuera del máximo permitido
+        } else if (valor == null || valor.signum() <= 0) {
             errores.add(MensajesMonedero.MONTO_PAGO_INVALIDO);
         }
 

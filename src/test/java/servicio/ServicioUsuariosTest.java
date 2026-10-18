@@ -86,7 +86,15 @@ class ServicioUsuariosTest {
         registrarAna();
         Resultado<Void> r = servicio.registrar("ana@ucv.com", "Clave1234", "Clave1234", "10000002", Rol.ESTUDIANTE);
         assertFalse(r.isOk());
-        assertEquals(Mensajes.USUARIO_EXISTENTE, r.getMensaje());
+        assertEquals(Mensajes.USUARIO_EXISTENTE_CORREO, r.getMensaje());
+    }
+
+    @Test
+    void registroConCorreoYCedulaDuplicadosIndicaAmbosCampos() {
+        registrarAna();
+        Resultado<Void> r = servicio.registrar("ana@ucv.com", "Clave1234", "Clave1234", "10000001", Rol.ESTUDIANTE);
+        assertFalse(r.isOk());
+        assertEquals(Mensajes.USUARIO_EXISTENTE_AMBOS, r.getMensaje());
     }
 
     @Test
@@ -94,7 +102,7 @@ class ServicioUsuariosTest {
         registrarAna();
         Resultado<Void> r = servicio.registrar("otra@ucv.com", "Clave1234", "Clave1234", "10000001", Rol.ESTUDIANTE);
         assertFalse(r.isOk());
-        assertEquals(Mensajes.USUARIO_EXISTENTE, r.getMensaje());
+        assertEquals(Mensajes.USUARIO_EXISTENTE_CEDULA, r.getMensaje());
     }
 
     @Test

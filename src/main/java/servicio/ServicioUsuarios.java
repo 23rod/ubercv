@@ -56,8 +56,11 @@ public class ServicioUsuarios implements Autorizador, ConsultaUsuarios, SesionAc
             return Resultado.error(Mensajes.CLAVES_NO_COINCIDEN);
         }
         // 4) Duplicados (HU01 escenario 4)
-        if (repositorio.existeCorreo(correoNorm) || repositorio.existeCedula(cedulaNorm)) {
-            return Resultado.error(Mensajes.USUARIO_EXISTENTE);
+        boolean correoRepetido = repositorio.existeCorreo(correoNorm);
+        boolean cedulaRepetida = repositorio.existeCedula(cedulaNorm);
+        if (correoRepetido || cedulaRepetida) { // se indica en qué campo(s) coincide
+            return Resultado.error(correoRepetido && cedulaRepetida ? Mensajes.USUARIO_EXISTENTE_AMBOS
+                    : correoRepetido ? Mensajes.USUARIO_EXISTENTE_CORREO : Mensajes.USUARIO_EXISTENTE_CEDULA);
         }
         // 5) El rol elegido debe coincidir con el padrón (HU01 escenario 5).
         //    El público general es externo a la universidad: solo puede registrarse quien NO está en el padrón.

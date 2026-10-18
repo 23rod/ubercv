@@ -101,6 +101,9 @@ public class CuerpoRegistroUnidad extends JPanel {
     public JButton getBotonConfirmar(){
         return botonConfirmar;
     }
+    public JTable getTablaUnidades(){
+        return tablaUnidades;
+    }
     public DefaultTableModel getModeloTablaUnidades(){
         return filasTablaUnidades;
     }

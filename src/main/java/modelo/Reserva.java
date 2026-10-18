@@ -1,72 +1,77 @@
 package modelo;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalTime;
-import modelo.Ticket;
-import modelo.TipoRuta;
+import java.util.Objects;
+import utilidades.Dinero;
 
-
-public class Reserva {
-    private String nombreRuta;
-    private String tipoRuta;
+/**
+ * Reserva persistible. Los datos que identifican el viaje y el importe cobrado se conservan
+ * como una instantánea para que una modificación posterior de la tarifa no altere un reintegro.
+ */
+public final class Reserva {
+    private final String nombreRuta;
+    private final String tipoRuta;
+    private final String estadoUnidad;
     private final LocalTime inicio;
     private final LocalTime fin;
-    private String estadoUnidad;
-    //--------------------------
-    private String correoUsuario;
-    private Ticket ticket;
-    private String fechaReserva;
-    private BigDecimal importeCobrado;
+    private final String correoUsuario;
+    private final Ticket ticket;
+    private final BigDecimal importeCobrado;
+    private final String placaUnidad;
+    private final LocalDate fechaServicio;
+    private final EstadoReserva estado;
 
-
-
-    public Reserva(String nombreRuta, String tipoRuta,
-                String estadoUnidad, LocalTime inicio,
-                LocalTime fin,Ticket ticket, String correoUsuario,
-                BigDecimal importeCobrado){
-        this.nombreRuta = nombreRuta;
-        this.tipoRuta = tipoRuta;
-        this.estadoUnidad = estadoUnidad;
-        this.inicio = inicio;
-        this.fin = fin;
-        //Añadidos para validar duplicados, liberar cupos y reintegrar saldo
-        this.ticket = ticket;
-        this.fechaReserva = this.ticket.getFechaReserva();
-        this.correoUsuario = correoUsuario;
-        this.importeCobrado = importeCobrado;
+    /** Constructor compatible con el prototipo anterior. */
+    public Reserva(String nombreRuta, String tipoRuta, String estadoUnidad,
+                   LocalTime inicio, LocalTime fin, Ticket ticket,
+                   String correoUsuario, BigDecimal importeCobrado) {
+        this(nombreRuta, tipoRuta, estadoUnidad, inicio, fin, ticket, correoUsuario,
+                importeCobrado, "", LocalDate.now(), EstadoReserva.ACTIVA);
     }
 
-    //Getters 
-    public String getNombreRuta(){
-        return this.nombreRuta;
+    public Reserva(String nombreRuta, String tipoRuta, String estadoUnidad,
+                   LocalTime inicio, LocalTime fin, Ticket ticket,
+                   String correoUsuario, BigDecimal importeCobrado,
+                   String placaUnidad, LocalDate fechaServicio, EstadoReserva estado) {
+        this.nombreRuta = obligatorio(nombreRuta, "El nombre de la ruta es obligatorio.");
+        this.tipoRuta = obligatorio(tipoRuta, "El tipo de ruta es obligatorio.");
+        this.estadoUnidad = estadoUnidad == null ? "Desconocido" : estadoUnidad;
+        this.inicio = Objects.requireNonNull(inicio, "La hora de inicio es obligatoria.");
+        this.fin = Objects.requireNonNull(fin, "La hora de fin es obligatoria.");
+        this.ticket = Objects.requireNonNull(ticket, "El ticket es obligatorio.");
+        this.correoUsuario = obligatorio(correoUsuario, "El correo del pasajero es obligatorio.").toLowerCase();
+        this.importeCobrado = Dinero.redondear(importeCobrado == null ? Dinero.CERO : importeCobrado);
+        if (this.importeCobrado.signum() < 0) {
+            throw new IllegalArgumentException("El importe cobrado no puede ser negativo.");
+        }
+        this.placaUnidad = placaUnidad == null ? "" : placaUnidad.trim().toUpperCase();
+        this.fechaServicio = Objects.requireNonNull(fechaServicio, "La fecha del servicio es obligatoria.");
+        this.estado = Objects.requireNonNull(estado, "El estado de la reserva es obligatorio.");
     }
 
-    public String getTipoRuta(){
-        return this.tipoRuta;
+    private static String obligatorio(String texto, String mensaje) {
+        if (texto == null || texto.isBlank()) throw new IllegalArgumentException(mensaje);
+        return texto.trim();
     }
 
-    public String getEstadoUnidad(){
-        return this.estadoUnidad;
+    public Reserva conEstado(EstadoReserva nuevoEstado) {
+        return new Reserva(nombreRuta, tipoRuta, estadoUnidad, inicio, fin, ticket,
+                correoUsuario, importeCobrado, placaUnidad, fechaServicio, nuevoEstado);
     }
 
-    public LocalTime getInicio(){
-        return this.inicio;
-    }
-
-    public LocalTime getFin(){
-        return this.fin;
-    }
-
-    public Ticket getTicketDeLaReserva(){
-        return this.ticket;
-    }
-
-    public String getCorreoDeUsuario(){
-        return this.correoUsuario;
-    }
-
-    public String getFechaDeReserva(){
-        return this.ticket.getFechaReserva();
-    }
-
+    public String getNombreRuta() { return nombreRuta; }
+    public String getTipoRuta() { return tipoRuta; }
+    public String getEstadoUnidad() { return estadoUnidad; }
+    public LocalTime getInicio() { return inicio; }
+    public LocalTime getFin() { return fin; }
+    public Ticket getTicketDeLaReserva() { return ticket; }
+    public String getCorreoDeUsuario() { return correoUsuario; }
+    public String getFechaDeReserva() { return ticket.getFechaReserva(); }
+    public BigDecimal getImporteCobrado() { return importeCobrado; }
+    public String getPlacaUnidad() { return placaUnidad; }
+    public LocalDate getFechaServicio() { return fechaServicio; }
+    public EstadoReserva getEstado() { return estado; }
+    public boolean estaActiva() { return estado == EstadoReserva.ACTIVA; }
 }

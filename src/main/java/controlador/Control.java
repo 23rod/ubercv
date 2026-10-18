@@ -6,6 +6,7 @@ import modelo.Rol;
 import persistencia.interfaces.IRepositorioMovimientos;
 import persistencia.interfaces.IRepositorioRecargas;
 import persistencia.interfaces.IRepositorioRutas;
+import persistencia.interfaces.IRepositorioReservas;
 import persistencia.interfaces.IRepositorioTarifas;
 import persistencia.interfaces.IRepositorioUnidades;
 import persistencia.interfaces.IRepositorioUsuarios;
@@ -13,6 +14,7 @@ import persistencia.memoria.DatosSemilla;
 import persistencia.memoria.RepositorioMovimientos;
 import persistencia.memoria.RepositorioRecargas;
 import persistencia.memoria.RepositorioRutas;
+import persistencia.memoria.RepositorioReservas;
 import persistencia.memoria.RepositorioTarifas;
 import persistencia.memoria.RepositorioUnidades;
 import persistencia.memoria.RepositorioUsuarios;
@@ -20,6 +22,7 @@ import servicio.ServicioFlota;
 import servicio.ServicioAsignaciones;
 import servicio.ServicioMonedero;
 import servicio.ServicioRecargas;
+import servicio.ServicioReservas;
 import servicio.ServicioRutas;
 import servicio.ServicioTarifas;
 import servicio.ServicioUsuarios;
@@ -60,16 +63,21 @@ public class Control {
         Navegador navegador = new Navegador();
         this.controlSesion = new ControlSesion(servicioUsuarios, navegador, this);
         ControlFlota controlFlota = new ControlFlota(servicioFlota);
-        ControlItinerarios controlItinerarios = new ControlItinerarios(servicioRutas, servicioAsignaciones, servicioUsuarios, controlFlota);
-        ControlTarifas controlTarifas = new ControlTarifas(new ServicioTarifas(repositorioTarifas, repositorioRutas, servicioUsuarios));
+        ServicioTarifas servicioTarifas = new ServicioTarifas(repositorioTarifas, repositorioRutas, servicioUsuarios);
+        ControlTarifas controlTarifas = new ControlTarifas(servicioTarifas);
         IRepositorioMovimientos repositorioMovimientos = new RepositorioMovimientos(Path.of("datos", "movimientos.txt"));
         ServicioMonedero servicioMonedero = new ServicioMonedero(repositorioMovimientos);
+        IRepositorioReservas repositorioReservas = new RepositorioReservas(Path.of("datos", "reservas.txt"));
+        ServicioReservas servicioReservas = new ServicioReservas(repositorioReservas, repositorioUnidades,
+                repositorioRutas, servicioUsuarios, servicioTarifas, servicioMonedero);
+        ControlItinerarios controlItinerarios = new ControlItinerarios(servicioRutas, servicioAsignaciones, servicioUsuarios,
+                controlFlota, servicioReservas);
         IRepositorioRecargas repositorioRecargas = new RepositorioRecargas(Path.of("datos", "recargas.txt"));
         ServicioRecargas servicioRecargas = new ServicioRecargas(repositorioRecargas, servicioMonedero, servicioUsuarios, servicioUsuarios);
         ControlRecargas controlRecargas = new ControlRecargas(servicioRecargas);
         ControlMonedero controlMonedero = new ControlMonedero(servicioMonedero, servicioUsuarios, controlRecargas, navegador);
         this.controlPrincipal = new ControlPrincipal(servicioUsuarios, navegador, controlSesion, controlFlota, controlItinerarios,
-                controlTarifas, controlRecargas, controlMonedero);
+                controlTarifas, controlRecargas, controlMonedero, servicioReservas, servicioMonedero);
     }
 
     // -------------------------------------------- Fachada que usan las vistas

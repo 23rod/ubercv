@@ -4,7 +4,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import modelo.EstadoUnidad;
 import modelo.Mensajes;
 import modelo.Resultado;
 import modelo.Ruta;
@@ -12,6 +14,7 @@ import modelo.TipoRuta;
 import modelo.UnidadTransporte;
 import modelo.Usuario;
 import servicio.ServicioAsignaciones;
+import servicio.ServicioReservas;
 import servicio.ServicioRutas;
 import servicio.ServicioUsuarios;
 import vista.PlantillaVista.PanelGestionRutas;
@@ -26,9 +29,11 @@ class ControlItinerarios {
     private final ServicioAsignaciones servicioAsignaciones;
     private final ServicioUsuarios servicioUsuarios;
     private final ControlFlota controlFlota; // solo para listar las placas en el panel
+    private final ServicioReservas servicioReservas; // disponibilidad que ve el pasajero
 
     ControlItinerarios(ServicioRutas servicioRutas, ServicioAsignaciones servicioAsignaciones,
-                       ServicioUsuarios servicioUsuarios, ControlFlota controlFlota) {
+                       ServicioUsuarios servicioUsuarios, ControlFlota controlFlota, ServicioReservas servicioReservas) {
+        this.servicioReservas = servicioReservas;
         this.servicioRutas = servicioRutas;
         this.servicioAsignaciones = servicioAsignaciones;
         this.servicioUsuarios = servicioUsuarios;
@@ -46,20 +51,29 @@ class ControlItinerarios {
         refrescar.run();
 
         // Autocompletar campos del formulario al seleccionar una ruta en el combo box de redefinir
-        cuerpo.getComboRutasRedefinir().addActionListener(e -> {
-            String rutaSeleccionada = cuerpo.getRutaRedefinirElegida();
-            if (rutaSeleccionada != null) {
-                for (Ruta r : servicioRutas.listarRutas()) {
-                    if (r.getNombre().equalsIgnoreCase(rutaSeleccionada)) {
-                        cuerpo.getcampoNombreRuta().setText(r.getNombre());
-                        cuerpo.setInicioJornada(r.getInicioJornada().format(HORA));
-                        cuerpo.setFinalJornada(r.getFinJornada().format(HORA));
-                        cuerpo.getPlegableRuta().setSelectedItem(r.getTipo().getEtiqueta());
-                        break;
-                    }
-                }
+        cuerpo.getComboRutasRedefinir().addActionListener(e -> autocompletarRuta(cuerpo, cuerpo.getRutaRedefinirElegida()));
+
+        // Seleccionar una fila de la tabla equivale a elegir esa ruta: combo de redefinición, formulario y panel de asignación
+        JTable tabla = cuerpo.getTablaRutas();
+        tabla.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) {
+                return;
             }
+            int fila = tabla.getSelectedRow();
+            if (fila < 0) {
+                return;
+            }
+            Object valor = cuerpo.getModeloTablaRutas().getValueAt(tabla.convertRowIndexToModel(fila), 0);
+            if (valor == null) {
+                return;
+            }
+            String nombre = valor.toString();
+            cuerpo.getComboRutasRedefinir().setSelectedItem(nombre);
+            autocompletarRuta(cuerpo, nombre); // explícito: si el combo ya tenía esa ruta, setSelectedItem no dispara su listener
+            panel.seleccionarRuta(nombre);
         });
+
+        cuerpo.getBotonLimpiar().addActionListener(e -> cuerpo.limpiarCampos());
 
         // HU10: crear ruta
         cuerpo.getBotonGuardarRuta().addActionListener(e -> {
@@ -127,6 +141,49 @@ class ControlItinerarios {
                 refrescar.run();
             }
         });
+    }
+
+    private void autocompletarRuta(CuerpoRegistroRuta cuerpo, String nombreRuta) {
+        if (nombreRuta == null) {
+            return;
+        }
+        for (Ruta r : servicioRutas.listarRutas()) {
+            if (r.getNombre().equalsIgnoreCase(nombreRuta)) {
+                cuerpo.getcampoNombreRuta().setText(r.getNombre());
+                cuerpo.setInicioJornada(r.getInicioJornada().format(HORA));
+                cuerpo.setFinalJornada(r.getFinJornada().format(HORA));
+                cuerpo.getPlegableRuta().setSelectedItem(r.getTipo().getEtiqueta());
+                break;
+            }
+        }
+    }
+
+    /**
+     * Tabla del pasajero: además de las placas muestra la capacidad total (solo unidades activas) de la ruta y, por separado, los puestos
+     * disponibles hoy (solo unidades activas y descontando las reservas activas).
+     */
+    void llenarTablaRutasPasajero(DefaultTableModel modelo) {
+        modelo.setRowCount(0);
+        for (Ruta ruta : servicioRutas.listarRutas()) {
+            List<UnidadTransporte> asignadas = servicioAsignaciones.unidadesDeRuta(ruta.getNombre());
+            List<String> placas = new ArrayList<>();
+            int capacidadActiva = 0; // las unidades inactivas no aportan capacidad
+            for (UnidadTransporte unidad : asignadas) {
+                placas.add(unidad.getPlaca());
+                if (unidad.getEstado() == EstadoUnidad.ACTIVO) {
+                    capacidadActiva += unidad.getCapacidad();
+                }
+            }
+            modelo.addRow(new Object[] {
+                ruta.getNombre(),
+                ruta.getTipo().getEtiqueta(),
+                ruta.getInicioJornada().format(HORA),
+                ruta.getFinJornada().format(HORA),
+                placas.isEmpty() ? "Sin unidades" : String.join(", ", placas),
+                capacidadActiva,
+                servicioReservas.cuposDisponiblesRutaHoy(ruta.getNombre())
+            });
+        }
     }
 
     /** conColumnaConductores: la tabla del admin tiene una sexta columna "Modificar Ruta". */

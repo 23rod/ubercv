@@ -168,6 +168,15 @@ class ServicioRecargasTest {
     }
 
     @Test
+    @DisplayName("Dado un monto con más de 9 dígitos enteros, cuando recarga, entonces el mensaje explica el máximo permitido")
+    void montoExcesivoEspecificaElMaximo() {
+        for (String enorme : new String[] {"999999999999999999999999999999999999,99", "1000000000", "1000000000.5"}) {
+            assertRechazo(recargas.recargar(ORIGEN, DESTINO, CEDULA, TELEFONO, REFERENCIA, enorme), MensajesMonedero.MONTO_PAGO_EXCESIVO);
+        }
+        assertTrue(recargarBien("111111111111", "999999999.99").isOk());
+    }
+
+    @Test
     @DisplayName("Dado un banco que no está en la lista (o un banco de origen usado como destino), cuando recarga, entonces se rechaza")
     void bancoInvalido() {
         assertRechazo(recargas.recargar("Banco inventado", DESTINO, CEDULA, TELEFONO, REFERENCIA, "10"), MensajesMonedero.BANCO_ORIGEN_INVALIDO);

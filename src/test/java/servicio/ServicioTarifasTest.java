@@ -18,7 +18,7 @@ import persistencia.memoria.RepositorioTarifas;
 import persistencia.memoria.RepositorioUnidades;
 import persistencia.memoria.RepositorioUsuarios;
 
-/** HU11: Configuración de Tarifas del cobro solidario (solo rutas extraurbanas). */
+/** HU11: Configuración de Tarifas y Descuentos del cobro solidario (solo rutas extraurbanas). */
 class ServicioTarifasTest {
 
     private static final String EXTRA = "UCV - Guarenas";
@@ -48,12 +48,21 @@ class ServicioTarifasTest {
 
     // ------------------------------------------------------------ HU11 escenario 1: registrar la tarifa base
     @Test
-    @DisplayName("Dado una ruta extraurbana, cuando el admin registra una T_base mayor que cero, entonces queda guardada")
+    @DisplayName("Dado una ruta extraurbana, cuando el admin registra una T_base desde 10.00 sin límite superior, entonces queda guardada")
     void registrarLaTarifaBaseDeUnaRutaExtraurbana() {
         Resultado<Void> r = tarifas.registrarTarifaBase(EXTRA, "10");
         assertTrue(r.isOk());
         assertEquals(Mensajes.TARIFA_REGISTRADA, r.getMensaje());
         assertEquals(d("10.00"), tarifas.tarifaBase(EXTRA));
+
+        assertTrue(tarifas.actualizarTarifaBase(EXTRA, "10.01").isOk());
+        assertEquals(d("10.01"), tarifas.tarifaBase(EXTRA));
+
+        assertTrue(tarifas.actualizarTarifaBase(EXTRA, "100").isOk());
+        assertEquals(d("100.00"), tarifas.tarifaBase(EXTRA));
+
+        assertTrue(tarifas.actualizarTarifaBase(EXTRA, "9999999999.99").isOk());
+        assertEquals(d("9999999999.99"), tarifas.tarifaBase(EXTRA));
     }
 
     @Test
@@ -98,12 +107,17 @@ class ServicioTarifasTest {
     }
 
     @Test
-    @DisplayName("Dado una T_base cero, negativa, con letras o con más de 2 decimales, cuando se registra, entonces se rechaza")
-    void tarifaBaseInvalida() {
-        for (String mala : new String[] {"", "0", "0.00", "-5", "abc", "1.234", null}) {
-            Resultado<Void> r = tarifas.registrarTarifaBase(EXTRA, mala);
-            assertFalse(r.isOk(), "debía rechazar: " + mala);
+    @DisplayName("Distingue error de formato no numérico o más de 2 decimales de un monto numérico inferior a 10.00")
+    void tarifaBaseInvalidaODebajoDelMinimo() {
+        for (String formatoMalo : new String[] {"", "   ", "abc", "0.001", "10.123", null}) {
+            Resultado<Void> r = tarifas.registrarTarifaBase(EXTRA, formatoMalo);
+            assertFalse(r.isOk(), "debía rechazar por formato: " + formatoMalo);
             assertEquals(Mensajes.TARIFA_INVALIDA, r.getMensaje());
+        }
+        for (String menorADiez : new String[] {"9.99", "0", "0.00", "-5", "-10.00"}) {
+            Resultado<Void> r = tarifas.registrarTarifaBase(EXTRA, menorADiez);
+            assertFalse(r.isOk(), "debía rechazar por mínimo 10: " + menorADiez);
+            assertEquals(Mensajes.TARIFA_MINIMA, r.getMensaje());
         }
         assertNull(tarifas.tarifaBase(EXTRA));
     }
@@ -125,36 +139,47 @@ class ServicioTarifasTest {
     }
 
     @Test
-    @DisplayName("Dado una tarifa registrada, cuando el admin la actualiza, entonces los montos por tipo de usuario se recalculan")
+    @DisplayName("Dado una tarifa registrada, cuando el admin la actualiza, entonces los montos finales por tipo de usuario se recalculan")
     void actualizarRecalculaLosMontos() {
         tarifas.registrarTarifaBase(EXTRA, "100");
-        assertEquals(d("15.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
+        assertEquals(d("85.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
 
         Resultado<Void> r = tarifas.actualizarTarifaBase(EXTRA, "200");
 
         assertTrue(r.isOk());
         assertEquals(Mensajes.TARIFA_ACTUALIZADA, r.getMensaje());
-        assertEquals(d("30.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
-        assertEquals(d("90.00"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));
+        assertEquals(d("170.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
+        assertEquals(d("110.00"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));
         assertEquals(d("200.00"), tarifas.montoPara(Rol.PUBLICO_GENERAL, EXTRA));
     }
 
     // ------------------------------------------------------------ cálculo de lo que paga cada tipo de usuario
     @Test
-    @DisplayName("Dado la escala por defecto, cuando se calcula con T_base 100, entonces Estudiante paga 15, Empleado 45 y Público General 100")
+    @DisplayName("Dado los descuentos por defecto (15% y 45%), con T_base 100 Estudiante paga 85.00, Empleado 55.00 y Público General 100.00")
     void montosConLosPorcentajesPorDefecto() {
         tarifas.registrarTarifaBase(EXTRA, "100");
-        assertEquals(d("15.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
-        assertEquals(d("45.00"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));
+        assertEquals(d("85.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
+        assertEquals(d("55.00"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));
         assertEquals(d("100.00"), tarifas.montoPara(Rol.PUBLICO_GENERAL, EXTRA));
     }
 
     @Test
-    @DisplayName("Dado un resultado con medio centavo, cuando se calcula, entonces se redondea hacia arriba")
+    @DisplayName("Con tarifa base 100 y descuentos de 20% y 40%, Estudiante paga 80.00, Empleado 60.00 y Público General 100.00")
+    void ejemploObligatorioDescuentos20Y40() {
+        tarifas.registrarTarifaBase(EXTRA, "100");
+        assertTrue(tarifas.configurarPorcentajes("20", "40").isOk());
+
+        assertEquals(d("80.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
+        assertEquals(d("60.00"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));
+        assertEquals(d("100.00"), tarifas.montoPara(Rol.PUBLICO_GENERAL, EXTRA));
+    }
+
+    @Test
+    @DisplayName("Dado un descuento con medio centavo, cuando se calcula, el descuento se redondea HALF_UP y se resta de la base")
     void elRedondeoEsHalfUp() {
         tarifas.registrarTarifaBase(EXTRA, "12.50");
-        assertEquals(d("1.88"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA)); // 1.875
-        assertEquals(d("5.63"), tarifas.montoPara(Rol.EMPLEADO, EXTRA)); // 5.625
+        assertEquals(d("10.62"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA)); // 12.50 - 1.88 (1.875) = 10.62
+        assertEquals(d("6.87"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));   // 12.50 - 5.63 (5.625) = 6.87
     }
 
     @Test
@@ -180,22 +205,24 @@ class ServicioTarifasTest {
         tarifas.registrarTarifaBase(EXTRA, "100");
         Map<Rol, BigDecimal> desglose = tarifas.desglose(EXTRA);
         assertEquals(List.of(Rol.ESTUDIANTE, Rol.EMPLEADO, Rol.PUBLICO_GENERAL), List.copyOf(desglose.keySet()));
-        assertEquals(d("45.00"), desglose.get(Rol.EMPLEADO));
+        assertEquals(d("85.00"), desglose.get(Rol.ESTUDIANTE));
+        assertEquals(d("55.00"), desglose.get(Rol.EMPLEADO));
+        assertEquals(d("100.00"), desglose.get(Rol.PUBLICO_GENERAL));
     }
 
-    // ------------------------------------------------------------ porcentajes configurables dentro de su rango
+    // ------------------------------------------------------------ porcentajes de descuento configurables dentro de su rango
     @Test
-    @DisplayName("Dado un porcentaje dentro del rango, cuando el admin lo configura, entonces los montos lo usan")
+    @DisplayName("Dado un porcentaje de descuento dentro del rango, cuando el admin lo configura, entonces los montos finales lo descuentan")
     void configurarUnPorcentajeValido() {
         tarifas.registrarTarifaBase(EXTRA, "100");
         assertTrue(tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "20").isOk());
         assertTrue(tarifas.configurarPorcentaje(Rol.EMPLEADO, "30").isOk());
-        assertEquals(d("20.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
-        assertEquals(d("30.00"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));
+        assertEquals(d("80.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
+        assertEquals(d("70.00"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));
     }
 
     @Test
-    @DisplayName("Dado porcentajes en los extremos del rango, cuando se configuran, entonces se aceptan; fuera de él se rechazan")
+    @DisplayName("Dado descuentos en los extremos del rango, se aceptan; negativos o bajo el mínimo devuelven mensaje específico del rol")
     void losLimitesDeLosRangosSeRespetan() {
         assertTrue(tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "10").isOk());
         assertTrue(tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "20").isOk());
@@ -204,31 +231,40 @@ class ServicioTarifasTest {
 
         Resultado<Void> pocoEstudiante = tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "9.99");
         assertEquals(String.format(Mensajes.PORCENTAJE_FUERA_DE_RANGO, "Estudiante", "10", "20"), pocoEstudiante.getMensaje());
+
+        Resultado<Void> negativoEstudiante = tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "-5");
+        assertEquals(String.format(Mensajes.PORCENTAJE_FUERA_DE_RANGO, "Estudiante", "10", "20"), negativoEstudiante.getMensaje());
+
+        Resultado<Void> negativoEmpleado = tarifas.configurarPorcentaje(Rol.EMPLEADO, "-10");
+        assertEquals(String.format(Mensajes.PORCENTAJE_FUERA_DE_RANGO, "Empleado", "30", "60"), negativoEmpleado.getMensaje());
+
         assertFalse(tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "20.01").isOk());
         assertFalse(tarifas.configurarPorcentaje(Rol.EMPLEADO, "29.99").isOk());
         assertFalse(tarifas.configurarPorcentaje(Rol.EMPLEADO, "60.01").isOk());
     }
 
     @Test
-    @DisplayName("Dado un porcentaje rechazado, cuando se consulta, entonces se conserva el último valor válido")
+    @DisplayName("Dado un porcentaje rechazado por rango o texto inválido, se conserva la última configuración válida")
     void unPorcentajeRechazadoNoCambiaNada() {
         tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "12");
         tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "50");
+        tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "abc");
+        tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "-5");
         assertEquals(d("12.00"), tarifas.porcentajeDe(Rol.ESTUDIANTE));
     }
 
     @Test
-    @DisplayName("Dado el público general, conductores o un texto no numérico, cuando se configura un porcentaje, entonces se rechaza")
+    @DisplayName("Dado el público general, conductores o un texto no numérico, cuando se configura un descuento, entonces se rechaza")
     void porcentajesNoConfigurables() {
         assertEquals(Mensajes.PORCENTAJE_PUBLICO_FIJO, tarifas.configurarPorcentaje(Rol.PUBLICO_GENERAL, "100").getMensaje());
         assertEquals(Mensajes.ROL_SIN_TARIFA, tarifas.configurarPorcentaje(Rol.CONDUCTOR, "15").getMensaje());
         assertEquals(Mensajes.PORCENTAJE_INVALIDO, tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "mucho").getMensaje());
-        assertEquals(d("100"), tarifas.porcentajeDe(Rol.PUBLICO_GENERAL));
+        assertEquals(d("0"), tarifas.porcentajeDe(Rol.PUBLICO_GENERAL));
     }
 
     // ------------------------------------------------------------ porcentajes de ambos tipos de usuario a la vez
     @Test
-    @DisplayName("Dado porcentajes válidos para ambos tipos de usuario, cuando el admin los guarda, entonces los dos quedan configurados")
+    @DisplayName("Dado descuentos válidos para ambos tipos de usuario, cuando el admin los guarda, entonces los dos quedan configurados")
     void configurarAmbosPorcentajes() {
         Resultado<Void> r = tarifas.configurarPorcentajes("12", "50");
 
@@ -239,7 +275,7 @@ class ServicioTarifasTest {
     }
 
     @Test
-    @DisplayName("Dado un campo en blanco, cuando se guardan los porcentajes, entonces ese tipo de usuario queda como estaba")
+    @DisplayName("Dado un campo en blanco, cuando se guardan los descuentos, entonces ese tipo de usuario queda como estaba")
     void unCampoEnBlancoDejaElValorActual() {
         tarifas.configurarPorcentajes("18", "55");
 
@@ -251,14 +287,14 @@ class ServicioTarifasTest {
     }
 
     @Test
-    @DisplayName("Dado ambos campos en blanco, cuando se guardan los porcentajes, entonces se pide ingresar al menos uno")
+    @DisplayName("Dado ambos campos en blanco, cuando se guardan los descuentos, entonces se pide ingresar al menos uno")
     void ambosEnBlancoSeRechaza() {
         assertEquals(Mensajes.PORCENTAJES_VACIOS, tarifas.configurarPorcentajes("", "").getMensaje());
         assertEquals(Mensajes.PORCENTAJES_VACIOS, tarifas.configurarPorcentajes(null, null).getMensaje());
     }
 
     @Test
-    @DisplayName("Dado un porcentaje válido y otro inválido, cuando se guardan, entonces no se guarda ninguno de los dos")
+    @DisplayName("Dado un descuento válido y otro inválido, cuando se guardan, entonces no se guarda ninguno de los dos")
     void siUnoEsInvalidoNoSeGuardaNinguno() {
         Resultado<Void> r = tarifas.configurarPorcentajes("12", "99");
 
@@ -274,13 +310,13 @@ class ServicioTarifasTest {
     }
 
     @Test
-    @DisplayName("Dado porcentajes configurados, cuando cambia la tarifa base, entonces los montos usan los porcentajes vigentes")
+    @DisplayName("Dado descuentos configurados, cuando cambia la tarifa base, entonces los importes finales usan los descuentos vigentes")
     void losMontosUsanLosPorcentajesConfigurados() {
         tarifas.registrarTarifaBase(EXTRA, "200");
         tarifas.configurarPorcentajes("10", "60");
 
-        assertEquals(d("20.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
-        assertEquals(d("120.00"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));
+        assertEquals(d("180.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA)); // 200 - 10% (20) = 180.00
+        assertEquals(d("80.00"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));    // 200 - 60% (120) = 80.00
         assertEquals(d("200.00"), tarifas.montoPara(Rol.PUBLICO_GENERAL, EXTRA));
     }
 

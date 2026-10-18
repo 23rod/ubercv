@@ -86,6 +86,13 @@ public class PanelGestionRutas extends JPanel {
         return comboRutas;
     }
 
+    /** Sincroniza la ruta elegida en el panel con la fila seleccionada en la tabla. */
+    public void seleccionarRuta(String nombreRuta) {
+        if (nombreRuta != null) {
+            comboRutas.setSelectedItem(nombreRuta);
+        }
+    }
+
     public JComboBox<String> getComboUnidades() {
         return comboUnidades;
     }

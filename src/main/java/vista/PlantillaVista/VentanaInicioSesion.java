@@ -215,10 +215,7 @@ public class VentanaInicioSesion extends JFrame {
                 // Iniciar sesión exitosa: ir al menu de usuario                
                 // Lógica para abrir la ventana principal del usuario
             
-                //Se borra el contenido de los campos de texto para que el usuario vuelva a ingresar sus datos
-                nombreUsuarioField.setText("");
-                contrasenaUsuarioField.setText("");
-                nombreUsuarioField.requestFocus(); //Coloca el cursor en el campo de correo
+                contrasenaUsuarioField.requestFocus(); //Coloca el cursor en el campo de correo
                 //JOptionPane.showMessageDialog(null, "Correo o contraseña incorrectos.");
             }
 

@@ -22,6 +22,7 @@ public class CuerpoRegistroRuta extends JPanel {
     private JComboBox<String> comboRutasRedefinir;
     private JButton botonGuardarRuta;
     private JButton botonRedefinir;
+    private JButton botonLimpiar;
     private JTable tablaRutas;
     private DefaultTableModel filasTablaRutas;
 
@@ -95,6 +96,9 @@ public class CuerpoRegistroRuta extends JPanel {
         panelRedefinirRuta.add(rutaRedefinirLabel);
         panelRedefinirRuta.add(comboRutasRedefinir);
         panelRedefinirRuta.add(botonRedefinir);
+
+        botonLimpiar = new JButton("Limpiar campos");
+        panelRedefinirRuta.add(botonLimpiar);
  
         // Creacion de la tabla de rutas
         String[] nombreColumnas = {"Nombre de Ruta", "Tipo", "Inicio", "Fin", "Unidades y Cupos", "Conductores Asignados"};
@@ -193,6 +197,23 @@ public class CuerpoRegistroRuta extends JPanel {
         } else {
             comboRutasRedefinir.setSelectedItem(ELIJA_RUTA);
         }
+    }
+    public JButton getBotonLimpiar(){
+        return botonLimpiar;
+    }
+    /** Deja el formulario en blanco: nombre, horas, tipo, ruta a redefinir y selección de la tabla. */
+    public void limpiarCampos() {
+        campoNombreRuta.setText("");
+        comboHoraInicio.setSelectedIndex(0);
+        comboMinutoInicio.setSelectedIndex(0);
+        comboHoraFin.setSelectedIndex(0);
+        comboMinutoFin.setSelectedIndex(0);
+        plegableRuta.setSelectedIndex(0);
+        comboRutasRedefinir.setSelectedItem(ELIJA_RUTA);
+        tablaRutas.clearSelection();
+    }
+    public JTable getTablaRutas(){
+        return tablaRutas;
     }
     public DefaultTableModel getModeloTablaRutas(){
         return filasTablaRutas;
