@@ -27,7 +27,6 @@ import servicio.ServicioReservas;
 import servicio.ServicioRutas;
 import servicio.ServicioTarifas;
 import servicio.ServicioUsuarios;
-import vista.PlantillaVista.PanelEstadoUnidad;
 import vista.PlantillaVista.PanelGestionRutas;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoRegistroRuta;
 
