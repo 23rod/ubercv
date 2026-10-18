@@ -12,6 +12,7 @@ public class EncabezadoGeneral extends JPanel{
     private JLabel Logo;
     private JPanel ubicacionLogo;
     private JLabel labelNombre;
+    private JLabel labelCedula;
     private JLabel labelRol;
     private JLabel labelSaldo;
     private JPanel panelInfoUsuario;
@@ -34,7 +35,8 @@ public class EncabezadoGeneral extends JPanel{
         Logo.setForeground(new ColorUIResource(0,0,0));
         Logo.setFont(new FontUIResource("Inter",1,56));
         
-        labelNombre = new JLabel("Nombre: ");
+        labelNombre = new JLabel("Usuario: "); // el modelo no tiene nombre real: se muestra el correo
+        labelCedula = new JLabel("Cédula: ");
         labelRol = new JLabel("Rol: ");
         labelSaldo = new JLabel("Saldo: ");
         
@@ -43,8 +45,10 @@ public class EncabezadoGeneral extends JPanel{
         panelInfoUsuario.setAlignmentY(JPanel.CENTER_ALIGNMENT);
         panelInfoUsuario.setBorder(BorderFactory.createEmptyBorder(0, 30, 0, 0)); // Espaciado controlado (aprox. 1 a 2 cm respecto al logo)
         panelInfoUsuario.add(labelNombre);
+        panelInfoUsuario.add(labelCedula);
         panelInfoUsuario.add(labelRol);
         panelInfoUsuario.add(labelSaldo);
+        panelInfoUsuario.setVisible(false); // sin sesión (registro, pantallas públicas) no se muestra nada
 
         ubicacionLogo.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0)); // Ubicacion del Logo
         ubicacionLogo.add(Logo);
@@ -89,6 +93,9 @@ public class EncabezadoGeneral extends JPanel{
     public JLabel getLabelNombre() {
         return labelNombre;
     }
+    public JLabel getLabelCedula() {
+        return labelCedula;
+    }
     public JLabel getLabelRol() {
         return labelRol;
     }
@@ -107,8 +114,25 @@ public class EncabezadoGeneral extends JPanel{
         this.repaint();
     }
 
-    public void setInfoUsuario(String nombre, String rol, String saldo) {
-        labelNombre.setText("Nombre: " + nombre);
+    /** Muestra u oculta todo el panel informativo (usuario, rol y saldo); solo debe verse con sesión iniciada. */
+    public void mostrarInfoUsuario(boolean visible) {
+        panelInfoUsuario.setVisible(visible);
+        this.revalidate();
+        this.repaint();
+    }
+
+    public boolean isInfoUsuarioVisible() {
+        return panelInfoUsuario.isVisible();
+    }
+
+    /** Sobrecarga manteniendo compatibilidad o recibiendo la cédula opcionalmente. */
+    public void setInfoUsuario(String usuario, String rol, String saldo) {
+        setInfoUsuario(usuario, "", rol, saldo);
+    }
+
+    public void setInfoUsuario(String usuario, String cedula, String rol, String saldo) {
+        labelNombre.setText("Usuario: " + usuario);
+        labelCedula.setText("Cédula: " + (cedula == null ? "" : cedula));
         labelRol.setText("Rol: " + rol);
         labelSaldo.setText("Saldo: " + saldo);
         this.revalidate();

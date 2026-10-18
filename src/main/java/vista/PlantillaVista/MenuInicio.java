@@ -33,6 +33,7 @@ import controlador.Control;
 public class MenuInicio extends JFrame {    
 
     private final Control control; // unico Control de la aplicacion (lo crea Main)
+    private VentanaInicioSesion ventanaInicioSesion;
 
     public MenuInicio(Control control) {
         
@@ -222,9 +223,12 @@ public class MenuInicio extends JFrame {
         botonIniciarSesion.setBackground(Color.BLUE);
         botonIniciarSesion.setForeground(Color.WHITE);
         botonIniciarSesion.addActionListener(e -> {
-            // Acción al hacer clic en el botón "Iniciar Sesión"
-            //VERIFICAR EL ARGUMENTO DEL CONSTRUCTOR "CONTROL"
-            VentanaInicioSesion ventanaInicioSesion = new VentanaInicioSesion(control);
+        if (ventanaInicioSesion != null && ventanaInicioSesion.isDisplayable()) {
+            ventanaInicioSesion.toFront();
+            ventanaInicioSesion.requestFocus();
+            return;
+        }
+            ventanaInicioSesion = new VentanaInicioSesion(control);
             ventanaInicioSesion.setVisible(true);
         });
         panel.add(botonIniciarSesion);

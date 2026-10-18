@@ -32,6 +32,7 @@ class Navegador {
         vista.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         vista.setLocationRelativeTo(null);
         vista.getEncabezadoGeneral().mostrarBotonCerrarSesion(conSesion);
+        vista.getEncabezadoGeneral().mostrarInfoUsuario(conSesion); // sin sesión no hay panel de usuario/rol/saldo
     }
 
     /** Envuelve un cuerpo con una barra superior "Volver al menú" (y un panel inferior opcional) sin tocar el código de las vistas. */

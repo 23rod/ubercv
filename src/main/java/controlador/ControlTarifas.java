@@ -13,7 +13,7 @@ import servicio.ServicioTarifas;
 import utilidades.Dinero;
 import vista.PlantillaVista.CuerposDelSistema.CuerpoGestionTarifas;
 
-/** HU11: Configuración de Tarifas del cobro solidario (solo rutas extraurbanas). */
+/** HU11: Configuración de Tarifas y Descuentos del cobro solidario (solo rutas extraurbanas). */
 class ControlTarifas {
 
     private final ServicioTarifas servicioTarifas;
@@ -50,19 +50,19 @@ class ControlTarifas {
             }
         });
 
-        // Porcentajes por tipo de usuario (Estudiante 10-20 %, Empleado 30-60 %; Público General es siempre 100 %)
+        // Descuentos por tipo de usuario (Estudiante 10-20 %, Empleado 30-60 %; Público General paga el 100 %)
         cuerpo.getBotonGuardarPorcentajes().addActionListener(e -> {
             Resultado<Void> r = servicioTarifas.configurarPorcentajes(
                     cuerpo.getPorcentajeEstudiante(), cuerpo.getPorcentajeEmpleado());
             JOptionPane.showMessageDialog(cuerpo, r.getMensaje());
             if (r.isOk()) {
-                refrescar.run(); // los montos de la tabla se recalculan con los porcentajes nuevos
+                refrescar.run(); // los importes finales de la tabla se recalculan con los descuentos nuevos
                 mostrarPorcentajesVigentes(cuerpo);
             }
         });
     }
 
-    /** Pone en los campos los porcentajes que están vigentes, sin ceros de más ("15" y no "15.00"). */
+    /** Pone en los campos los porcentajes de descuento vigentes, sin ceros de más ("15" y no "15.00"). */
     private void mostrarPorcentajesVigentes(CuerpoGestionTarifas cuerpo) {
         cuerpo.mostrarPorcentajes(
                 servicioTarifas.porcentajeDe(Rol.ESTUDIANTE).stripTrailingZeros().toPlainString(),
@@ -77,7 +77,7 @@ class ControlTarifas {
         return nombres;
     }
 
-    /** Una fila por ruta extraurbana: nombre, tarifa base y lo que paga cada tipo de usuario. */
+    /** Una fila por ruta extraurbana: nombre, tarifa base e importe final a pagar por cada tipo de usuario. */
     private void llenarTabla(DefaultTableModel modelo) {
         modelo.setRowCount(0);
         for (Ruta ruta : servicioTarifas.rutasExtraurbanas()) {

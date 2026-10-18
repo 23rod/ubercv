@@ -53,6 +53,16 @@ public class PanelEstadoUnidad extends JPanel {
         return botonCambiarEstado;
     }
 
+    /** Selecciona la unidad y deja su estado actual como valor inicial del selector de nuevo estado. */
+    public void seleccionarUnidad(String placa, String estadoEtiqueta) {
+        if (placa != null) {
+            comboUnidades.setSelectedItem(placa);
+        }
+        if (estadoEtiqueta != null) {
+            comboEstados.setSelectedItem(estadoEtiqueta);
+        }
+    }
+
     /** Recarga las placas conservando la selección anterior si todavía existe. */
     public void actualizarUnidades(List<String> placas) {
         Object anterior = comboUnidades.getSelectedItem();

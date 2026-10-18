@@ -35,16 +35,18 @@ class ControlMonedero {
     }
 
     /** Muestra el monedero del usuario con sesión dentro de la ventana principal. */
-    void abrir(VistaConcreta vista, Runnable volverAlMenu) {
+    void abrir(VistaConcreta vista, Runnable volverAlMenu, Runnable alCambiarSaldo) {
         CuerpoConsultarSaldo cuerpo = new CuerpoConsultarSaldo();
         JPanel pantalla = navegador.conBotonVolver("Monedero Virtual", cuerpo, null, volverAlMenu);
         refrescar(cuerpo);
+        alCambiarSaldo.run();
 
         cuerpo.getBotonREcargaMondero().addActionListener(e -> {
             VentanaPagoMovil pago = new VentanaPagoMovil();
             // tras una recarga exitosa se vuelve al monedero con el saldo y el historial ya actualizados
             controlRecargas.conectar(pago, () -> {
                 refrescar(cuerpo);
+                alCambiarSaldo.run(); // el saldo del encabezado se actualiza al volver de la recarga
                 vista.mostrarCuerpo(pantalla);
             });
             vista.mostrarCuerpo(navegador.conBotonVolver("Recargar Monedero Virtual", pago, null, () -> vista.mostrarCuerpo(pantalla)));

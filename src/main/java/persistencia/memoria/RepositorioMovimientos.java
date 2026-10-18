@@ -40,8 +40,16 @@ public class RepositorioMovimientos implements IRepositorioMovimientos {
 
     @Override
     public synchronized void agregar(Movimiento movimiento) {
+        if (movimiento == null) {
+            throw new IllegalArgumentException("El movimiento es obligatorio.");
+        }
         movimientos.add(movimiento);
-        escribir();
+        try {
+            escribir();
+        } catch (RuntimeException e) {
+            movimientos.remove(movimiento);
+            throw e;
+        }
     }
 
     @Override
@@ -110,7 +118,7 @@ public class RepositorioMovimientos implements IRepositorioMovimientos {
             }
             AlmacenArchivo.escribirAtomico(archivo, lineas);
         } catch (IOException e) {
-            System.err.println("Error al escribir los movimientos: " + archivo);
+            throw new IllegalStateException("No se pudieron persistir los movimientos en " + archivo, e);
         }
     }
 

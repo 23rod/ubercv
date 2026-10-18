@@ -35,4 +35,5 @@ public class UnidadTransporte {
     public boolean tieneConductor() {
         return cedulaConductor != null && !cedulaConductor.isBlank();
     }
+
 }

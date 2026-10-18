@@ -3,6 +3,7 @@ package controlador;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import modelo.EstadoUnidad;
 import modelo.Resultado;
@@ -26,6 +27,23 @@ class ControlFlota {
             panel.actualizarUnidades(placasDeUnidades());
         };
         refrescar.run();
+
+        // Al seleccionar una fila se autocompleta el panel de estado (placa y estado actual como valor inicial)
+        JTable tabla = cuerpo.getTablaUnidades();
+        tabla.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
+            int fila = tabla.getSelectedRow();
+            if (fila < 0) {
+                return;
+            }
+            DefaultTableModel modelo = cuerpo.getModeloTablaUnidades();
+            int filaModelo = tabla.convertRowIndexToModel(fila);
+            Object placa = modelo.getValueAt(filaModelo, 0);
+            Object estado = modelo.getValueAt(filaModelo, 3);
+            panel.seleccionarUnidad(placa == null ? null : placa.toString(), estado == null ? null : estado.toString());
+        });
 
         // HU09: registrar unidad
         cuerpo.getBotonConfirmar().addActionListener(e -> {

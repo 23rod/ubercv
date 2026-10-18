@@ -35,7 +35,7 @@ class DatosSemillaTest {
         ServicioUsuarios servicio = new ServicioUsuarios(repo);
 
         var r = servicio.registrar("otro@ucv.com", "Clave1234", "Clave1234", "12345678", Rol.ADMIN_TRANSPORTE);
-        assertEquals(Mensajes.USUARIO_EXISTENTE, r.getMensaje());
+        assertEquals(Mensajes.USUARIO_EXISTENTE_CEDULA, r.getMensaje());
     }
 
     @Test

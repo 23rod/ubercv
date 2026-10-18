@@ -75,7 +75,11 @@ public class ServicioMonedero {
             if (referencia != null && !referencia.trim().isEmpty() && repositorio.existeReferencia(referencia)) {
                 return Resultado.error(MensajesMonedero.REFERENCIA_REPETIDA);
             }
-            anotar(correo, TipoMovimiento.RECARGA, monto, descripcion, referencia == null ? null : referencia.trim());
+            try {
+                anotar(correo, TipoMovimiento.RECARGA, monto, descripcion, referencia == null ? null : referencia.trim());
+            } catch (RuntimeException e) {
+                return Resultado.error("No se pudo guardar el movimiento de recarga: " + mensajeExcepcion(e));
+            }
         }
         return Resultado.exito(null, "Recarga acreditada");
     }
@@ -90,7 +94,11 @@ public class ServicioMonedero {
             if (calcularSaldo(correo).compareTo(Dinero.redondear(monto)) < 0) {
                 return Resultado.error(MensajesMonedero.SALDO_INSUFICIENTE);
             }
-            anotar(correo, TipoMovimiento.COBRO, monto, descripcion, null);
+            try {
+                anotar(correo, TipoMovimiento.COBRO, monto, descripcion, null);
+            } catch (RuntimeException e) {
+                return Resultado.error("No se pudo guardar el cobro: " + mensajeExcepcion(e));
+            }
         }
         return Resultado.exito(null, "Cobro realizado");
     }
@@ -102,7 +110,11 @@ public class ServicioMonedero {
             return invalido;
         }
         synchronized (cerradura) {
-            anotar(correo, TipoMovimiento.REINTEGRO, monto, descripcion, null);
+            try {
+                anotar(correo, TipoMovimiento.REINTEGRO, monto, descripcion, null);
+            } catch (RuntimeException e) {
+                return Resultado.error("No se pudo guardar el reintegro: " + mensajeExcepcion(e));
+            }
         }
         return Resultado.exito(null, "Reintegro realizado");
     }
@@ -122,6 +134,11 @@ public class ServicioMonedero {
         repositorio.agregar(new Movimiento(
                 correo.trim().toLowerCase(), tipo, Dinero.redondear(monto),
                 LocalDateTime.now(reloj), descripcion, referencia));
+    }
+
+    private static String mensajeExcepcion(RuntimeException e) {
+        String mensaje = e.getMessage();
+        return mensaje == null || mensaje.isBlank() ? e.getClass().getSimpleName() : mensaje;
     }
 
     /** Debe llamarse dentro de la sección sincronizada. */

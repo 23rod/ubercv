@@ -48,12 +48,21 @@ class ServicioTarifasTest {
 
     // ------------------------------------------------------------ HU11 escenario 1: registrar la tarifa base
     @Test
-    @DisplayName("Dado una ruta extraurbana, cuando el admin registra una T_base mayor que cero, entonces queda guardada")
+    @DisplayName("Dado una ruta extraurbana, cuando el admin registra una T_base desde 10.00 sin límite superior, entonces queda guardada")
     void registrarLaTarifaBaseDeUnaRutaExtraurbana() {
         Resultado<Void> r = tarifas.registrarTarifaBase(EXTRA, "10");
         assertTrue(r.isOk());
         assertEquals(Mensajes.TARIFA_REGISTRADA, r.getMensaje());
         assertEquals(d("10.00"), tarifas.tarifaBase(EXTRA));
+
+        assertTrue(tarifas.actualizarTarifaBase(EXTRA, "10.01").isOk());
+        assertEquals(d("10.01"), tarifas.tarifaBase(EXTRA));
+
+        assertTrue(tarifas.actualizarTarifaBase(EXTRA, "100").isOk());
+        assertEquals(d("100.00"), tarifas.tarifaBase(EXTRA));
+
+        assertTrue(tarifas.actualizarTarifaBase(EXTRA, "9999999999.99").isOk());
+        assertEquals(d("9999999999.99"), tarifas.tarifaBase(EXTRA));
     }
 
     @Test
@@ -98,12 +107,17 @@ class ServicioTarifasTest {
     }
 
     @Test
-    @DisplayName("Dado una T_base cero, negativa, con letras o con más de 2 decimales, cuando se registra, entonces se rechaza")
-    void tarifaBaseInvalida() {
-        for (String mala : new String[] {"", "0", "0.00", "-5", "abc", "1.234", null}) {
-            Resultado<Void> r = tarifas.registrarTarifaBase(EXTRA, mala);
-            assertFalse(r.isOk(), "debía rechazar: " + mala);
+    @DisplayName("Distingue error de formato no numérico o más de 2 decimales de un monto numérico inferior a 10.00")
+    void tarifaBaseInvalidaODebajoDelMinimo() {
+        for (String formatoMalo : new String[] {"", "   ", "abc", "0.001", "10.123", null}) {
+            Resultado<Void> r = tarifas.registrarTarifaBase(EXTRA, formatoMalo);
+            assertFalse(r.isOk(), "debía rechazar por formato: " + formatoMalo);
             assertEquals(Mensajes.TARIFA_INVALIDA, r.getMensaje());
+        }
+        for (String menorADiez : new String[] {"9.99", "0", "0.00", "-5", "-10.00"}) {
+            Resultado<Void> r = tarifas.registrarTarifaBase(EXTRA, menorADiez);
+            assertFalse(r.isOk(), "debía rechazar por mínimo 10: " + menorADiez);
+            assertEquals(Mensajes.TARIFA_MINIMA, r.getMensaje());
         }
         assertNull(tarifas.tarifaBase(EXTRA));
     }
@@ -141,10 +155,21 @@ class ServicioTarifasTest {
 
     // ------------------------------------------------------------ cálculo de lo que paga cada tipo de usuario
     @Test
-    @DisplayName("Dado la escala por defecto, cuando se calcula con T_base 100, entonces Estudiante paga 15, Empleado 45 y Público General 100")
+    @DisplayName("Dado la escala por defecto (15% y 45%), con T_base 100 Estudiante paga 15.00, Empleado 45.00 y Público General 100.00")
     void montosConLosPorcentajesPorDefecto() {
         tarifas.registrarTarifaBase(EXTRA, "100");
         assertEquals(d("15.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
+        assertEquals(d("45.00"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));
+        assertEquals(d("100.00"), tarifas.montoPara(Rol.PUBLICO_GENERAL, EXTRA));
+    }
+
+    @Test
+    @DisplayName("Con tarifa base 100 y porcentajes 20% y 45%, Estudiante paga 20.00, Empleado 45.00 y Público General 100.00")
+    void ejemploPorcentajes20Y45SobreBase100() {
+        tarifas.registrarTarifaBase(EXTRA, "100");
+        assertTrue(tarifas.configurarPorcentajes("20", "45").isOk());
+
+        assertEquals(d("20.00"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA));
         assertEquals(d("45.00"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));
         assertEquals(d("100.00"), tarifas.montoPara(Rol.PUBLICO_GENERAL, EXTRA));
     }
@@ -154,7 +179,7 @@ class ServicioTarifasTest {
     void elRedondeoEsHalfUp() {
         tarifas.registrarTarifaBase(EXTRA, "12.50");
         assertEquals(d("1.88"), tarifas.montoPara(Rol.ESTUDIANTE, EXTRA)); // 1.875
-        assertEquals(d("5.63"), tarifas.montoPara(Rol.EMPLEADO, EXTRA)); // 5.625
+        assertEquals(d("5.63"), tarifas.montoPara(Rol.EMPLEADO, EXTRA));   // 5.625
     }
 
     @Test
@@ -180,7 +205,9 @@ class ServicioTarifasTest {
         tarifas.registrarTarifaBase(EXTRA, "100");
         Map<Rol, BigDecimal> desglose = tarifas.desglose(EXTRA);
         assertEquals(List.of(Rol.ESTUDIANTE, Rol.EMPLEADO, Rol.PUBLICO_GENERAL), List.copyOf(desglose.keySet()));
+        assertEquals(d("15.00"), desglose.get(Rol.ESTUDIANTE));
         assertEquals(d("45.00"), desglose.get(Rol.EMPLEADO));
+        assertEquals(d("100.00"), desglose.get(Rol.PUBLICO_GENERAL));
     }
 
     // ------------------------------------------------------------ porcentajes configurables dentro de su rango
@@ -204,6 +231,10 @@ class ServicioTarifasTest {
 
         Resultado<Void> pocoEstudiante = tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "9.99");
         assertEquals(String.format(Mensajes.PORCENTAJE_FUERA_DE_RANGO, "Estudiante", "10", "20"), pocoEstudiante.getMensaje());
+
+        Resultado<Void> negativoEstudiante = tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "-5");
+        assertEquals(String.format(Mensajes.PORCENTAJE_FUERA_DE_RANGO, "Estudiante", "10", "20"), negativoEstudiante.getMensaje());
+
         assertFalse(tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "20.01").isOk());
         assertFalse(tarifas.configurarPorcentaje(Rol.EMPLEADO, "29.99").isOk());
         assertFalse(tarifas.configurarPorcentaje(Rol.EMPLEADO, "60.01").isOk());
@@ -214,6 +245,8 @@ class ServicioTarifasTest {
     void unPorcentajeRechazadoNoCambiaNada() {
         tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "12");
         tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "50");
+        tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "abc");
+        tarifas.configurarPorcentaje(Rol.ESTUDIANTE, "-5");
         assertEquals(d("12.00"), tarifas.porcentajeDe(Rol.ESTUDIANTE));
     }
 
@@ -239,15 +272,21 @@ class ServicioTarifasTest {
     }
 
     @Test
-    @DisplayName("Dado un campo en blanco, cuando se guardan los porcentajes, entonces ese tipo de usuario queda como estaba")
+    @DisplayName("Dado un campo en blanco al guardar porcentajes, se asigna su límite inferior y el mensaje lo informa")
     void unCampoEnBlancoDejaElValorActual() {
         tarifas.configurarPorcentajes("18", "55");
 
-        assertTrue(tarifas.configurarPorcentajes("", "40").isOk());
-        assertTrue(tarifas.configurarPorcentajes("11", "  ").isOk());
+        Resultado<Void> soloEmpleado = tarifas.configurarPorcentajes("", "45");
+        assertTrue(soloEmpleado.isOk());
+        assertEquals(String.format(Mensajes.PORCENTAJE_ACTUALIZADO_CON_MINIMO, "Estudiante", "10"), soloEmpleado.getMensaje());
+        assertEquals(d("10.00"), tarifas.porcentajeDe(Rol.ESTUDIANTE));
+        assertEquals(d("45.00"), tarifas.porcentajeDe(Rol.EMPLEADO));
 
-        assertEquals(d("11.00"), tarifas.porcentajeDe(Rol.ESTUDIANTE));
-        assertEquals(d("40.00"), tarifas.porcentajeDe(Rol.EMPLEADO));
+        Resultado<Void> soloEstudiante = tarifas.configurarPorcentajes("15", "  ");
+        assertTrue(soloEstudiante.isOk());
+        assertEquals(String.format(Mensajes.PORCENTAJE_ACTUALIZADO_CON_MINIMO, "Empleado", "30"), soloEstudiante.getMensaje());
+        assertEquals(d("15.00"), tarifas.porcentajeDe(Rol.ESTUDIANTE));
+        assertEquals(d("30.00"), tarifas.porcentajeDe(Rol.EMPLEADO));
     }
 
     @Test

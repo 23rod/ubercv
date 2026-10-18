@@ -1,10 +1,12 @@
 package servicio;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import modelo.Mensajes;
 import modelo.Resultado;
 import modelo.Rol;
@@ -16,14 +18,16 @@ import utilidades.Dinero;
 import utilidades.validadores.Validador;
 
 /**
- * HU11: cobro solidario. El administrador fija la tarifa base municipal (T_base) de cada ruta extraurbana
- * y el sistema calcula lo que paga cada tipo de usuario como un porcentaje de esa tarifa:
- * Estudiantes entre 10 % y 20 %, Empleados/Profesores entre 30 % y 60 %, Público General 100 %.
- * Si el administrador no configura porcentajes se usan los valores por defecto (15 %, 45 % y 100 %).
+ * HU11: cobro solidario. El administrador fija la tarifa base municipal (T_base >= 10.00, sin límite superior)
+ * de cada ruta extraurbana y el sistema calcula lo que paga cada tipo de usuario como un porcentaje de esa tarifa:
+ * Estudiantes entre 10 % y 20 % (por defecto 15 %), Empleados/Profesores entre 30 % y 60 % (por defecto 45 %),
+ * Público General 100 %. Conductores y administradores no pagan (0.00).
  */
 public class ServicioTarifas {
 
     private static final BigDecimal CIEN = new BigDecimal("100");
+    public static final BigDecimal TARIFA_BASE_MINIMA = new BigDecimal("10.00");
+    private static final Pattern FORMATO_DECIMAL_CON_SIGNO = Pattern.compile("^[+-]?\\d+([.,]\\d{1,2})?$");
 
     private final IRepositorioTarifas tarifas;
     private final IRepositorioRutas rutas;
@@ -35,7 +39,7 @@ public class ServicioTarifas {
         this.autorizador = autorizador;
     }
 
-    // ------------------------------------------------------------ reglas de la escala (porcentajes)
+    // ------------------------------------------------------------ reglas de la escala (porcentajes de la tarifa base)
     public static BigDecimal minimo(Rol rol) {
         return (rol == Rol.ESTUDIANTE) ? new BigDecimal("10") : new BigDecimal("30");
     }
@@ -79,8 +83,9 @@ public class ServicioTarifas {
     }
 
     /**
-     * Cambia a la vez los porcentajes de Estudiantes y Empleados (un campo en blanco significa "dejar como está").
-     * Se valida todo antes de guardar: si uno de los dos es inválido no se guarda ninguno.
+     * Cambia a la vez los porcentajes de Estudiantes y Empleados.
+     * Si uno de los dos campos se deja vacío, se le asigna su límite inferior (10 % para Estudiante, 30 % para Empleado)
+     * y se informa en el mensaje de retorno. Si alguno de los ingresados es inválido, no se guarda ninguno.
      */
     public Resultado<Void> configurarPorcentajes(String estudiante, String empleado) {
         Resultado<Void> acceso = autorizador.exigirRol(Rol.ADMIN_TRANSPORTE);
@@ -92,27 +97,40 @@ public class ServicioTarifas {
         if (!hayEstudiante && !hayEmpleado) {
             return Resultado.error(Mensajes.PORCENTAJES_VACIOS);
         }
-        BigDecimal paraEstudiante = null;
-        BigDecimal paraEmpleado = null;
+        BigDecimal paraEstudiante;
+        BigDecimal paraEmpleado;
         if (hayEstudiante) {
             Resultado<BigDecimal> r = validarPorcentaje(Rol.ESTUDIANTE, estudiante);
             if (!r.isOk()) {
                 return Resultado.error(r.getMensaje());
             }
             paraEstudiante = r.getValor();
+        } else {
+            paraEstudiante = Dinero.redondear(minimo(Rol.ESTUDIANTE));
         }
+
         if (hayEmpleado) {
             Resultado<BigDecimal> r = validarPorcentaje(Rol.EMPLEADO, empleado);
             if (!r.isOk()) {
                 return Resultado.error(r.getMensaje());
             }
             paraEmpleado = r.getValor();
+        } else {
+            paraEmpleado = Dinero.redondear(minimo(Rol.EMPLEADO));
         }
-        if (paraEstudiante != null) {
-            tarifas.guardarPorcentaje(Rol.ESTUDIANTE, paraEstudiante);
+
+        tarifas.guardarPorcentaje(Rol.ESTUDIANTE, paraEstudiante);
+        tarifas.guardarPorcentaje(Rol.EMPLEADO, paraEmpleado);
+
+        if (!hayEstudiante) {
+            return Resultado.exito(null, String.format(
+                    Mensajes.PORCENTAJE_ACTUALIZADO_CON_MINIMO,
+                    nombre(Rol.ESTUDIANTE), minimo(Rol.ESTUDIANTE).toPlainString()));
         }
-        if (paraEmpleado != null) {
-            tarifas.guardarPorcentaje(Rol.EMPLEADO, paraEmpleado);
+        if (!hayEmpleado) {
+            return Resultado.exito(null, String.format(
+                    Mensajes.PORCENTAJE_ACTUALIZADO_CON_MINIMO,
+                    nombre(Rol.EMPLEADO), minimo(Rol.EMPLEADO).toPlainString()));
         }
         return Resultado.exito(null, Mensajes.PORCENTAJE_ACTUALIZADO);
     }
@@ -125,7 +143,7 @@ public class ServicioTarifas {
         if (rol != Rol.ESTUDIANTE && rol != Rol.EMPLEADO) {
             return Resultado.error(Mensajes.ROL_SIN_TARIFA);
         }
-        BigDecimal valor = Dinero.parsearDecimal(porcentaje);
+        BigDecimal valor = parsearDecimalConSigno(porcentaje);
         if (valor == null) {
             return Resultado.error(Mensajes.PORCENTAJE_INVALIDO);
         }
@@ -175,9 +193,12 @@ public class ServicioTarifas {
         if (ruta.getTipo() != TipoRuta.EXTRAURBANA) {
             return Resultado.error(Mensajes.RUTA_NO_EXTRAURBANA);
         }
-        BigDecimal valor = Dinero.parsearDecimal(monto);
-        if (valor == null || valor.signum() <= 0) {
+        BigDecimal valor = parsearDecimalConSigno(monto);
+        if (valor == null) {
             return Resultado.error(Mensajes.TARIFA_INVALIDA);
+        }
+        if (valor.compareTo(TARIFA_BASE_MINIMA) < 0) {
+            return Resultado.error(Mensajes.TARIFA_MINIMA);
         }
         boolean existe = tarifas.obtenerTarifaBase(ruta.getNombre()) != null;
         if (actualizar && !existe) {
@@ -190,6 +211,17 @@ public class ServicioTarifas {
         return Resultado.exito(null, actualizar ? Mensajes.TARIFA_ACTUALIZADA : Mensajes.TARIFA_REGISTRADA);
     }
 
+    private static BigDecimal parsearDecimalConSigno(String texto) {
+        if (texto == null) {
+            return null;
+        }
+        String limpio = texto.trim();
+        if (limpio.isEmpty() || !FORMATO_DECIMAL_CON_SIGNO.matcher(limpio).matches()) {
+            return null;
+        }
+        return new BigDecimal(limpio.replace(',', '.')).setScale(2, RoundingMode.HALF_UP);
+    }
+
     /** Tarifa base de la ruta, o null si no tiene. */
     public BigDecimal tarifaBase(String nombreRuta) {
         return tarifas.obtenerTarifaBase(nombreRuta);
@@ -197,8 +229,8 @@ public class ServicioTarifas {
 
     // ------------------------------------------------------------ cálculo del cobro
     /**
-     * Lo que paga el tipo de usuario por viajar en la ruta. Es 0.00 (no se cobra) si la ruta no es extraurbana,
-     * si no tiene tarifa configurada o si ese tipo de usuario no paga.
+     * Lo que paga el tipo de usuario por viajar en la ruta (base × porcentaje / 100).
+     * Es 0.00 (no se cobra) si la ruta no es extraurbana, si no tiene tarifa configurada o si ese tipo de usuario no paga.
      */
     public BigDecimal montoPara(Rol rol, String nombreRuta) {
         Ruta ruta = (nombreRuta == null) ? null : rutas.buscarPorNombre(nombreRuta);

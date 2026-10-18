@@ -86,7 +86,15 @@ class ServicioUsuariosTest {
         registrarAna();
         Resultado<Void> r = servicio.registrar("ana@ucv.com", "Clave1234", "Clave1234", "10000002", Rol.ESTUDIANTE);
         assertFalse(r.isOk());
-        assertEquals(Mensajes.USUARIO_EXISTENTE, r.getMensaje());
+        assertEquals(Mensajes.USUARIO_EXISTENTE_CORREO, r.getMensaje());
+    }
+
+    @Test
+    void registroConCorreoYCedulaDuplicadosIndicaAmbosCampos() {
+        registrarAna();
+        Resultado<Void> r = servicio.registrar("ana@ucv.com", "Clave1234", "Clave1234", "10000001", Rol.ESTUDIANTE);
+        assertFalse(r.isOk());
+        assertEquals(Mensajes.USUARIO_EXISTENTE_AMBOS, r.getMensaje());
     }
 
     @Test
@@ -94,7 +102,7 @@ class ServicioUsuariosTest {
         registrarAna();
         Resultado<Void> r = servicio.registrar("otra@ucv.com", "Clave1234", "Clave1234", "10000001", Rol.ESTUDIANTE);
         assertFalse(r.isOk());
-        assertEquals(Mensajes.USUARIO_EXISTENTE, r.getMensaje());
+        assertEquals(Mensajes.USUARIO_EXISTENTE_CEDULA, r.getMensaje());
     }
 
     @Test
@@ -190,7 +198,7 @@ class ServicioUsuariosTest {
     @Test
     void elMensajeDeDatosInvalidosListaTodosLosCamposQueFallan() {
         // Cédula con prefijo "V-", correo que no termina en .com y clave corta
-        Resultado<Void> r = servicio.registrar("juan@ucv.edu.ve", "123", "123", "V-12345678", Rol.ESTUDIANTE);
+        Resultado<Void> r = servicio.registrar("correo-invalido", "123", "123", "V-12345678", Rol.ESTUDIANTE);
         assertTrue(r.getMensaje().startsWith(Mensajes.DATOS_INVALIDOS));
         assertTrue(r.getMensaje().contains(Mensajes.DETALLE_CEDULA));
         assertTrue(r.getMensaje().contains(Mensajes.DETALLE_CORREO));
