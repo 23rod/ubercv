@@ -167,7 +167,7 @@ class ControladorReservasTest {
     @Test
     void laEtiquetaDePrecioSigueLaRutaSeleccionadaConElImporteFinalDelServicio() {
         seleccionarRuta(EXTRA);
-        assertEquals("Precio a pagar: 85.00", vista.getLabelPrecioReserva().getText()); // estudiante: 15 % de descuento
+        assertEquals("Precio a pagar: 15.00", vista.getLabelPrecioReserva().getText()); // estudiante: 85 % de descuento
 
         seleccionarRuta(URB1);
         assertEquals("Precio a pagar: 0.00 (sin cobro)", vista.getLabelPrecioReserva().getText());

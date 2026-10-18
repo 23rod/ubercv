@@ -11,6 +11,9 @@ class ValidadorTest {
     void correosValidos() {
         assertTrue(Validador.esCorreoValido("ana@ucv.com"));
         assertTrue(Validador.esCorreoValido("  Ana.Perez@Gmail.COM "));
+        assertTrue(Validador.esCorreoValido("usuario@dominio.es"));
+        assertTrue(Validador.esCorreoValido("admin@empresa.net"));
+        assertTrue(Validador.esCorreoValido("profesor@ucv.edu.ve"));
     }
 
     @Test

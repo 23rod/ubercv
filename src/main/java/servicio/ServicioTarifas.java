@@ -19,16 +19,14 @@ import utilidades.validadores.Validador;
 
 /**
  * HU11: cobro solidario. El administrador fija la tarifa base municipal (T_base >= 10.00, sin límite superior)
- * de cada ruta extraurbana y configura los porcentajes de descuento por rol:
- * - Descuento para estudiantes: entre 10 % y 20 % (por defecto 15 %, paga 85 % de T_base).
- * - Descuento para empleados: entre 30 % y 60 % (por defecto 45 %, paga 55 % de T_base).
- * - Público General: sin descuento (paga el 100 % de T_base).
- * - Conductores y administradores: no pagan tarifa (0.00).
+ * de cada ruta extraurbana y el sistema calcula lo que paga cada tipo de usuario como un porcentaje de esa tarifa:
+ * Estudiantes entre 10 % y 20 % (por defecto 15 %), Empleados/Profesores entre 30 % y 60 % (por defecto 45 %),
+ * Público General 100 %. Conductores y administradores no pagan (0.00).
  */
 public class ServicioTarifas {
 
+    private static final BigDecimal CIEN = new BigDecimal("100");
     public static final BigDecimal TARIFA_BASE_MINIMA = new BigDecimal("10.00");
-    /** Acepta números enteros o con hasta 2 decimales (punto o coma), incluyendo signo para distinguir negativos de formato inválido y sin límite artificial de dígitos enteros. */
     private static final Pattern FORMATO_DECIMAL_CON_SIGNO = Pattern.compile("^[+-]?\\d+([.,]\\d{1,2})?$");
 
     private final IRepositorioTarifas tarifas;
@@ -41,7 +39,7 @@ public class ServicioTarifas {
         this.autorizador = autorizador;
     }
 
-    // ------------------------------------------------------------ reglas de la escala (porcentajes de descuento)
+    // ------------------------------------------------------------ reglas de la escala (porcentajes de la tarifa base)
     public static BigDecimal minimo(Rol rol) {
         return (rol == Rol.ESTUDIANTE) ? new BigDecimal("10") : new BigDecimal("30");
     }
@@ -58,12 +56,11 @@ public class ServicioTarifas {
         return (rol == Rol.ESTUDIANTE) ? "Estudiante" : "Empleado";
     }
 
-    /**
-     * Porcentaje de descuento aplicable al tipo de usuario:
-     * Estudiante (10-20 %, defecto 15 %), Empleado (30-60 %, defecto 45 %),
-     * Público General y demás roles tienen 0 % de descuento configurable.
-     */
+    /** Porcentaje que paga el tipo de usuario (cero si ese tipo de usuario no paga tarifa, como conductores y administradores). */
     public BigDecimal porcentajeDe(Rol rol) {
+        if (rol == Rol.PUBLICO_GENERAL) {
+            return CIEN;
+        }
         if (rol != Rol.ESTUDIANTE && rol != Rol.EMPLEADO) {
             return BigDecimal.ZERO;
         }
@@ -71,13 +68,13 @@ public class ServicioTarifas {
         return (configurado != null) ? configurado : porDefecto(rol);
     }
 
-    /** Cambia el porcentaje de descuento de Estudiantes o Empleados dentro de su rango permitido. */
-    public Resultado<Void> configurarPorcentaje(Rol rol, String porcentajeDescuento) {
+    /** Cambia el porcentaje de Estudiantes o Empleados dentro de su rango permitido. */
+    public Resultado<Void> configurarPorcentaje(Rol rol, String porcentaje) {
         Resultado<Void> acceso = autorizador.exigirRol(Rol.ADMIN_TRANSPORTE);
         if (!acceso.isOk()) {
             return acceso;
         }
-        Resultado<BigDecimal> valor = validarPorcentaje(rol, porcentajeDescuento);
+        Resultado<BigDecimal> valor = validarPorcentaje(rol, porcentaje);
         if (!valor.isOk()) {
             return Resultado.error(valor.getMensaje());
         }
@@ -86,45 +83,59 @@ public class ServicioTarifas {
     }
 
     /**
-     * Cambia a la vez los porcentajes de descuento de Estudiantes y Empleados (un campo en blanco significa "dejar como está").
-     * Se valida todo antes de guardar: si uno de los dos es inválido no se guarda ninguno.
+     * Cambia a la vez los porcentajes de Estudiantes y Empleados.
+     * Si uno de los dos campos se deja vacío, se le asigna su límite inferior (10 % para Estudiante, 30 % para Empleado)
+     * y se informa en el mensaje de retorno. Si alguno de los ingresados es inválido, no se guarda ninguno.
      */
-    public Resultado<Void> configurarPorcentajes(String descuentoEstudiante, String descuentoEmpleado) {
+    public Resultado<Void> configurarPorcentajes(String estudiante, String empleado) {
         Resultado<Void> acceso = autorizador.exigirRol(Rol.ADMIN_TRANSPORTE);
         if (!acceso.isOk()) {
             return acceso;
         }
-        boolean hayEstudiante = Validador.esTextoNoVacio(descuentoEstudiante);
-        boolean hayEmpleado = Validador.esTextoNoVacio(descuentoEmpleado);
+        boolean hayEstudiante = Validador.esTextoNoVacio(estudiante);
+        boolean hayEmpleado = Validador.esTextoNoVacio(empleado);
         if (!hayEstudiante && !hayEmpleado) {
             return Resultado.error(Mensajes.PORCENTAJES_VACIOS);
         }
-        BigDecimal paraEstudiante = null;
-        BigDecimal paraEmpleado = null;
+        BigDecimal paraEstudiante;
+        BigDecimal paraEmpleado;
         if (hayEstudiante) {
-            Resultado<BigDecimal> r = validarPorcentaje(Rol.ESTUDIANTE, descuentoEstudiante);
+            Resultado<BigDecimal> r = validarPorcentaje(Rol.ESTUDIANTE, estudiante);
             if (!r.isOk()) {
                 return Resultado.error(r.getMensaje());
             }
             paraEstudiante = r.getValor();
+        } else {
+            paraEstudiante = Dinero.redondear(minimo(Rol.ESTUDIANTE));
         }
+
         if (hayEmpleado) {
-            Resultado<BigDecimal> r = validarPorcentaje(Rol.EMPLEADO, descuentoEmpleado);
+            Resultado<BigDecimal> r = validarPorcentaje(Rol.EMPLEADO, empleado);
             if (!r.isOk()) {
                 return Resultado.error(r.getMensaje());
             }
             paraEmpleado = r.getValor();
+        } else {
+            paraEmpleado = Dinero.redondear(minimo(Rol.EMPLEADO));
         }
-        if (paraEstudiante != null) {
-            tarifas.guardarPorcentaje(Rol.ESTUDIANTE, paraEstudiante);
+
+        tarifas.guardarPorcentaje(Rol.ESTUDIANTE, paraEstudiante);
+        tarifas.guardarPorcentaje(Rol.EMPLEADO, paraEmpleado);
+
+        if (!hayEstudiante) {
+            return Resultado.exito(null, String.format(
+                    Mensajes.PORCENTAJE_ACTUALIZADO_CON_MINIMO,
+                    nombre(Rol.ESTUDIANTE), minimo(Rol.ESTUDIANTE).toPlainString()));
         }
-        if (paraEmpleado != null) {
-            tarifas.guardarPorcentaje(Rol.EMPLEADO, paraEmpleado);
+        if (!hayEmpleado) {
+            return Resultado.exito(null, String.format(
+                    Mensajes.PORCENTAJE_ACTUALIZADO_CON_MINIMO,
+                    nombre(Rol.EMPLEADO), minimo(Rol.EMPLEADO).toPlainString()));
         }
         return Resultado.exito(null, Mensajes.PORCENTAJE_ACTUALIZADO);
     }
 
-    /** Comprueba que el tipo de usuario tenga descuento configurable y que el valor numérico esté dentro de su rango. */
+    /** Comprueba que el tipo de usuario tenga porcentaje configurable y que el valor esté dentro de su rango. */
     private Resultado<BigDecimal> validarPorcentaje(Rol rol, String porcentaje) {
         if (rol == Rol.PUBLICO_GENERAL) {
             return Resultado.error(Mensajes.PORCENTAJE_PUBLICO_FIJO);
@@ -200,7 +211,6 @@ public class ServicioTarifas {
         return Resultado.exito(null, actualizar ? Mensajes.TARIFA_ACTUALIZADA : Mensajes.TARIFA_REGISTRADA);
     }
 
-    /** Convierte texto numérico con hasta 2 decimales (sin tope superior artificial y admitiendo signo) a BigDecimal. */
     private static BigDecimal parsearDecimalConSigno(String texto) {
         if (texto == null) {
             return null;
@@ -219,8 +229,8 @@ public class ServicioTarifas {
 
     // ------------------------------------------------------------ cálculo del cobro
     /**
-     * Importe final que paga el tipo de usuario por viajar en la ruta tras aplicar su descuento.
-     * Es 0.00 (no se cobra) si la ruta no es extraurbana, si no tiene tarifa configurada o si ese rol no paga.
+     * Lo que paga el tipo de usuario por viajar en la ruta (base × porcentaje / 100).
+     * Es 0.00 (no se cobra) si la ruta no es extraurbana, si no tiene tarifa configurada o si ese tipo de usuario no paga.
      */
     public BigDecimal montoPara(Rol rol, String nombreRuta) {
         Ruta ruta = (nombreRuta == null) ? null : rutas.buscarPorNombre(nombreRuta);
@@ -228,21 +238,14 @@ public class ServicioTarifas {
             return Dinero.CERO;
         }
         BigDecimal base = tarifas.obtenerTarifaBase(ruta.getNombre());
-        if (base == null || base.signum() <= 0) {
+        BigDecimal porcentaje = porcentajeDe(rol);
+        if (base == null || porcentaje.signum() == 0) {
             return Dinero.CERO;
         }
-        if (rol == Rol.PUBLICO_GENERAL) {
-            return Dinero.redondear(base);
-        }
-        if (rol != Rol.ESTUDIANTE && rol != Rol.EMPLEADO) {
-            return Dinero.CERO;
-        }
-        BigDecimal porcentajeDescuento = porcentajeDe(rol);
-        BigDecimal montoDescuento = Dinero.porcentajeDe(base, porcentajeDescuento);
-        return Dinero.redondear(base.subtract(montoDescuento));
+        return Dinero.porcentajeDe(base, porcentaje);
     }
 
-    /** Importes finales a pagar de la ruta por tipo de usuario, en el orden de la tabla: Estudiante, Empleado, Público General. */
+    /** Montos de la ruta por tipo de usuario, en el orden de la tabla: Estudiante, Empleado, Público General. */
     public Map<Rol, BigDecimal> desglose(String nombreRuta) {
         Map<Rol, BigDecimal> montos = new LinkedHashMap<>();
         montos.put(Rol.ESTUDIANTE, montoPara(Rol.ESTUDIANTE, nombreRuta));

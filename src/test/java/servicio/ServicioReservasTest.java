@@ -95,9 +95,9 @@ class ServicioReservasTest {
 
         assertTrue(resultado.isOk(), resultado.getMensaje());
         assertEquals("Solicitud de cupo realizada correctamente", resultado.getMensaje());
-        assertEquals(d("85.00"), resultado.getValor().getImporteCobrado());
-        assertEquals(d("85.00"), resultado.getValor().getTicketDeLaReserva().getImporteCobrado());
-        assertEquals(d("15.00"), monedero.saldo("estudiante@ucv.com"));
+        assertEquals(d("15.00"), resultado.getValor().getImporteCobrado());
+        assertEquals(d("15.00"), resultado.getValor().getTicketDeLaReserva().getImporteCobrado());
+        assertEquals(d("85.00"), monedero.saldo("estudiante@ucv.com"));
         assertEquals(0, servicio.cuposDisponiblesRuta(EXTRA, HOY));
         assertFalse(resultado.getValor().getTicketDeLaReserva().getCodigo().isBlank());
     }
@@ -140,7 +140,7 @@ class ServicioReservasTest {
         assertFalse(segunda.isOk());
         assertEquals("Ruta ya reservada anteriormente", segunda.getMensaje());
         assertEquals(1, repoReservas.listar().size());
-        assertEquals(d("15.00"), monedero.saldo("estudiante@ucv.com"));
+        assertEquals(d("85.00"), monedero.saldo("estudiante@ucv.com"));
     }
 
     @Test
@@ -226,7 +226,7 @@ class ServicioReservasTest {
 
         assertFalse(resultado.isOk());
         assertTrue(repoReservas.buscarPorCodigo(creada.getValor().getTicketDeLaReserva().getCodigo()).estaActiva());
-        assertEquals(d("15.00"), monedero.saldo("estudiante@ucv.com"));
+        assertEquals(d("85.00"), monedero.saldo("estudiante@ucv.com"));
         assertEquals(0, servicio.cuposDisponiblesRuta(EXTRA, HOY));
     }
 
@@ -247,7 +247,7 @@ class ServicioReservasTest {
         assertEquals(EXTRA, reserva.getNombreRuta());
         assertEquals(PLACA_EXTRA, reserva.getPlacaUnidad());
         assertEquals(HOY, reserva.getFechaServicio());
-        assertEquals(d("85.00"), reserva.getImporteCobrado());
+        assertEquals(d("15.00"), reserva.getImporteCobrado());
         assertEquals(EstadoReserva.ACTIVA, reserva.getEstado());
         recuperado.actualizar(reserva.conEstado(EstadoReserva.CANCELADA));
         assertEquals(EstadoReserva.CANCELADA,
@@ -325,7 +325,7 @@ class ServicioReservasTest {
     @Test
     @DisplayName("El importe estimado coincide con lo que cobra la reserva: descuento por rol, 0.00 en urbana, sin tarifa o sin sesión")
     void importeEstimadoUsaLaLogicaDeTarifas() {
-        assertEquals(d("85.00"), servicio.importeEstimado(EXTRA));          // estudiante: 15 % de descuento sobre 100.00
+        assertEquals(d("15.00"), servicio.importeEstimado(EXTRA));          // estudiante: 85 % de descuento sobre 100.00
         assertEquals(d("0.00"), servicio.importeEstimado(URBANA));
         assertEquals(d("0.00"), servicio.importeEstimado(null));
         assertEquals(d("0.00"), servicio.importeEstimado("Inventada"));
@@ -337,7 +337,7 @@ class ServicioReservasTest {
         assertTrue(usuarios.iniciarSesion("publico@ucv.com", DatosSemilla.CLAVE_DEMO).isOk());
         assertEquals(d("100.00"), servicio.importeEstimado(EXTRA));
         assertTrue(usuarios.iniciarSesion("empleado@ucv.com", DatosSemilla.CLAVE_DEMO).isOk());
-        assertEquals(d("55.00"), servicio.importeEstimado(EXTRA));
+        assertEquals(d("45.00"), servicio.importeEstimado(EXTRA));
         assertTrue(usuarios.iniciarSesion("conductor@ucv.com", DatosSemilla.CLAVE_DEMO).isOk());
         assertEquals(d("0.00"), servicio.importeEstimado(EXTRA));
 
@@ -363,7 +363,7 @@ class ServicioReservasTest {
         List<Reserva> activas = servicio.reservasActivasDelDia();
         assertEquals(1, activas.size());                       // no se canceló sola
         assertEquals(PLACA_EXTRA, activas.get(0).getPlacaUnidad());
-        assertEquals(d("15.00"), monedero.saldo("estudiante@ucv.com")); // sin reintegro automático
+        assertEquals(d("85.00"), monedero.saldo("estudiante@ucv.com")); // sin reintegro automático
         assertEquals(0, servicio.cuposDisponiblesRutaHoy(EXTRA));       // unidad no activa: sin disponibilidad
 
         var cancelacion = servicio.cancelar(activas.get(0).getTicketDeLaReserva().getCodigo());

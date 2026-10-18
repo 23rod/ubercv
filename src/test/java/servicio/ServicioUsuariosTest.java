@@ -198,7 +198,7 @@ class ServicioUsuariosTest {
     @Test
     void elMensajeDeDatosInvalidosListaTodosLosCamposQueFallan() {
         // Cédula con prefijo "V-", correo que no termina en .com y clave corta
-        Resultado<Void> r = servicio.registrar("juan@ucv.edu.ve", "123", "123", "V-12345678", Rol.ESTUDIANTE);
+        Resultado<Void> r = servicio.registrar("correo-invalido", "123", "123", "V-12345678", Rol.ESTUDIANTE);
         assertTrue(r.getMensaje().startsWith(Mensajes.DATOS_INVALIDOS));
         assertTrue(r.getMensaje().contains(Mensajes.DETALLE_CEDULA));
         assertTrue(r.getMensaje().contains(Mensajes.DETALLE_CORREO));

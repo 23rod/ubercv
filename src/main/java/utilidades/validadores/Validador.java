@@ -10,9 +10,9 @@ public class Validador {
     public static final int MAX_MODELO = 40;
     public static final int MAX_NOMBRE_RUTA = 60;
 
-    // Algo@algo.com, sin espacios y con una sola arroba (HU01: correo @____.com)
+    // Permite cualquier extensión de dominio válida (.com, .es, .net, .org, .edu.ve, etc.), sin espacios y con una sola arroba
     private static final Pattern CORREO =
-            Pattern.compile("^[^@\\s]+@[^@\\s]+\\.com$", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("^[^@\\s]+@[^@\\s.]+(\\.[^@\\s.]+)+$", Pattern.CASE_INSENSITIVE);
     // De 5 a 8 letras o números (cubre placas como AB123CD o ABC123)
     private static final Pattern PLACA = Pattern.compile("^[A-Z0-9]{5,8}$", Pattern.CASE_INSENSITIVE);
     // Hora de 24 horas: H:mm o HH:mm
@@ -38,7 +38,7 @@ public class Validador {
         return placa != null && PLACA.matcher(placa.trim()).matches();
     }
 
-    /** Número entero entre 1 y CAPACIDAD_MAX (120). */
+    /** Número entero entre CAPACIDAD_MIN (10) y CAPACIDAD_MAX (120). */
     public static boolean esCapacidadValida(String capacidad) {
         if (capacidad == null) {
             return false;

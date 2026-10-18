@@ -50,22 +50,22 @@ public class CuerpoGestionTarifas extends JPanel{
         JPanel panelBotonActualizarTarifa = CrearSubPanel.subPanel();
         panelBotonActualizarTarifa.add(campoActualizarTarifa);
         
-        // Creacion del campo de descuento para Estudiante (10-20%)
-        JLabel estudiantesLabel = new JLabel("Descuento para estudiantes (%): ");
+        // Creacion del placeholder Estudiante 
+        JLabel estudiantesLabel = new JLabel("Tarifa para estudiantes (10-20%): ");
         campoPorcentajeEstudiante = new JTextField(20);
         JPanel panelEstudiantePorcentaje = CrearSubPanel.subPanel(); 
         panelEstudiantePorcentaje.add(estudiantesLabel);
         panelEstudiantePorcentaje.add(campoPorcentajeEstudiante);
         
-        // Creacion del campo de descuento para Empleado (30-60%)
-        JLabel empleadosLabel = new JLabel("Descuento para empleados (%): ");
+        // Creacion del placeholder Empleado 
+        JLabel empleadosLabel = new JLabel("Tarifa para Empleados (30-60%): ");
         campoPorcentajeEmpleado = new JTextField(20);
         JPanel panelEmpleadoTarifa = CrearSubPanel.subPanel(); 
         panelEmpleadoTarifa.add(empleadosLabel);
         panelEmpleadoTarifa.add(campoPorcentajeEmpleado);
         
-        // Creacion del boton Guardar Descuentos
-        campoGuardarPorcentaje = new JButton("Guardar Descuentos");
+        // Creacion del boton Guardar Porcentajes
+        campoGuardarPorcentaje = new JButton("Guardar Porcentajes");
         JPanel panelBotonGuardarPorcentaje = CrearSubPanel.subPanel();
         panelBotonGuardarPorcentaje.add(campoGuardarPorcentaje);
 
